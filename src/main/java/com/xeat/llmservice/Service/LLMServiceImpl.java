@@ -112,14 +112,15 @@ public class LLMServiceImpl implements LLMService{
                         .build());
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
+        //TODO : feign client로 code쪽 문제 정보 보내서 저장하기
+        //TODO : feign client로 test case 정보 저장 요청?
+        //TODO : 확인하여, front에 보내는 정보 test case 빼야하는지 확인
         return ResponseEntity.success(LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent()));
-
-
-
     }
 
     @Override
     public ResponseEntity<LLMResponseDTO> chat(LLMRequestDTO.chatMessage request) {
+        //TODO: 코딩테스트 문제를 만들어달라는 요청을 받을 경우, 생성하지 않도록 수정
         //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
         //1. 사용자의 메세지 받기
         //2. 사용자 신원 조회
