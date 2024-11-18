@@ -15,7 +15,7 @@ public class LLMController {
     private final LLMService llmService;
 
     @PostMapping("/code-generating")
-    public Mono<ResponseEntity<LLMResponseDTO>> codeGenerator(@RequestBody LLMRequestDTO.codeGeneratingInfo request) {
+    public ResponseEntity<LLMResponseDTO.CodeGenerateResponse> codeGenerator(@RequestBody LLMRequestDTO.codeGeneratingInfo request) {
         return llmService.codeGenerator(request);
     }
 

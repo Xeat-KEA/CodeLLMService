@@ -1,33 +1,22 @@
 package com.xeat.llmservice.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xeat.llmservice.DTO.LLMRequestDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
 import com.xeat.llmservice.Global.ResponseEntity;
-import com.xeat.llmservice.OpenAI.FunctionSpec;
-import com.xeat.llmservice.OpenAI.OpenAIMessage;
-import com.xeat.llmservice.OpenAI.OpenAIRequest;
 import com.xeat.llmservice.Repository.LLMHistoryRepository;
 import com.xeat.llmservice.Repository.LLMRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.util.List;
 
-import static com.xeat.llmservice.OpenAI.FunctionSpec.codeContentPropertiesDetail.createCodeContentPropertiesDetail;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.codeGeneratorFunctionDetail.createCodeGeneratorFunctionDetail;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.codePropertiesDetail.createCodePropertiesDetail;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.contentSpec.createContentSpec;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.itemsSpec.createItemsSpec;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.parameterSpec.createParameterSpec;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.testCasePropertiesSpec.createTestCasePropertiesSpec;
-import static com.xeat.llmservice.OpenAI.FunctionSpec.testCaseSpec.createTestCaseSpec;
 
 @Service
 @Slf4j
@@ -36,16 +25,108 @@ import static com.xeat.llmservice.OpenAI.FunctionSpec.testCaseSpec.createTestCas
 public class LLMServiceImpl implements LLMService{
     private final LLMRepository llmRepository;
     private final LLMHistoryRepository llmHistoryRepository;
+    private final OpenAiChatModel openAiChatModel;
 
     @Override
-    public Mono<ResponseEntity<LLMResponseDTO>> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
+    public ResponseEntity<LLMResponseDTO.CodeGenerateResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
+        String etc = request.getEtc() != null ? request.getEtc() : "null";
+        UserMessage userMessage1 = new UserMessage("난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
+        String jsonSchema = """
+                {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "코딩 테스트 문제의 제목을 나타냅니다. 문제의 핵심 주제나 목적을 간결히 나타내는 한글 문구여야 합니다."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "문제 설명을 HTML 형식으로 작성합니다. 문제 설명에는 다음 요소들이 포함되어야 합니다: \\n\\n- **문제 설명:** 문제의 배경과 목표를 설명 \\n- **문제 제한 사항:** 문제 풀이 조건을 기술(필요시 null 가능) \\n- **입력 예시:** 문제 풀이를 위한 예제 입력값,  \\n- **출력 예시:** 예제 입력에 대한 출력값 \\n- **입출력 예 설명:** 예제 입력과 출력의 관계를 설명 \\n\\nHTML 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.\\n\\n입출력 예시의 형식은 다음을 준수해야 합니다: \\n1. 입력값은 각 항목을 줄바꿈(`\\n`)을 이용해 나타냅니다. 예를 들어, 그래프의 노드와 간선을 입력받는 경우 다음과 같은 형식을 사용합니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n2. 출력값도 동일하게 줄바꿈(`\\n`)으로 나타내며, 필요한 경우 문장 대신 값만 포함합니다."
+                    },
+                    
+                    "problem_info" : {
+                      "type": "array",
+                      "description" : "문제 제작에 필요한 정보를 배열로 작성합니다. 각 항목은 문제 알고리즘, 난이도, 추가 사항을 포함합니다.",
+                      "items": {
+                        "type" : "object",
+                        "properties" : {
+                          "algorithm": {
+                            "type": "string",
+                            "description": "문제 해결에 사용된 알고리즘의 이름입니다. 예: '브루트포스', 'DFS', 'BFS' 등"
+                          },
+                          "difficulty": {
+                            "type": "string",
+                            "description": "문제의 난이도를 1~5 사이의 숫자로 나타냅니다. (1: 가장 쉬움, 5: 매우 어려움)"
+                          },
+                          "additional_notes": {
+                            "type": "string",
+                            "description": "문제 제작자가 추가로 제공한 요구사항이나 정보입니다. (빈 값일 수 있음)"
+                          }
+                        },
+                        "required": [
+                          "algorithm",
+                          "difficulty",
+                          "additional_notes"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    
+                    "test_cases": {
+                      "type": "array",
+                      "description": "테스트 케이스 배열로 문제 풀이 검증을 위한 입력과 출력 정보를 담습니다. 최대 20개의 케이스를 포함할 수 있습니다. \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "input": {
+                            "type": "string",
+                            "description": "테스트 케이스의 입력값입니다. 각 줄에 하나의 정보를 포함하며, 여러 줄로 이루어진 데이터를 줄바꿈(`\\n`) 형식으로 작성합니다."
+                          },
+                          "expected_output": {
+                            "type": "string",
+                            "description": "해당 입력값에 대한 예상 출력값입니다. 출력 값이 여러 줄로 이루어져있다면, 출력값을 줄바꿈(`\\n`) 형식으로 작성합니다."
+                          }
+                        },
+                        "required": [
+                          "input",
+                          "expected_output"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "content",
+                    "problem_info",
+                    "test_cases"
+                    ],
+                  "additionalProperties": false
+                }
+                """;
+
+        Prompt prompt = new Prompt(userMessage1,
+                OpenAiChatOptions.builder()
+                        .withModel("gpt-4o")
+                        .withResponseFormat(new OpenAiApi.ChatCompletionRequest.ResponseFormat(OpenAiApi.ChatCompletionRequest.ResponseFormat.Type.JSON_SCHEMA, jsonSchema))
+                        .build());
+
+        ChatResponse chatResponse = this.openAiChatModel.call(prompt);
+        return ResponseEntity.success(LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent()));
 
 
-        return null;
+
     }
 
     @Override
     public ResponseEntity<LLMResponseDTO> chat(LLMRequestDTO.chatMessage request) {
+        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
+        //1. 사용자의 메세지 받기
+        //2. 사용자 신원 조회
+        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
+        //b. 기존 사용자 : 사용자 기존 기록 가져와서 OpenAI에 전달
+        //c. 기존 사용자 중
+
         if(request.getCodeHistoryId()==null){
 //            getuserLanguage
 
@@ -55,6 +136,33 @@ public class LLMServiceImpl implements LLMService{
         return null;
     }
 
+    //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeContentPropertiesDetail.createCodeContentPropertiesDetail;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.codeGeneratorFunctionDetail.createCodeGeneratorFunctionDetail;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.codePropertiesDetail.createCodePropertiesDetail;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.contentSpec.createContentSpec;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.itemsSpec.createItemsSpec;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.parameterSpec.createParameterSpec;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.testCasePropertiesSpec.createTestCasePropertiesSpec;
+//import static com.xeat.llmservice.OpenAI.FunctionSpec.testCaseSpec.createTestCaseSpec;
+
+    //        List<OpenAIMessage> openAIMessageList = new ArrayList<>();
+//        OpenAIMessage systemMessage = OpenAIMessage.createMessage("system", "난이도(1~5), 알고리즘, 기타 사항을 받아 한글로 만든 코딩테스트를 만들어준다. 모든 질문의 답은 html 태그에 담아 말하고, 적재적소에 필요한 태그를 사용한다. 단, <h2>가 가장 큰 글씨이다.  입력 예제, 출력 예제 하나를 제외한 테스트케이스는 말해주지는 않는다.");
+//        OpenAIMessage userMessage = OpenAIMessage.createMessage("user", "난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
+//
+//        openAIMessageList.add(systemMessage);
+//        openAIMessageList.add(userMessage);
+
+//        OpenAiChatOptions openAiChatOptions = OpenAiChatOptions.builder()
+//                .withFunction("coding-test-generator")
+//                .build();
+//        ChatResponse chatResponse = this.openAiChatModel.call(new Prompt(userMessage1,
+//                OpenAiChatOptions.builder().withFunction("coding-test-generator").build()));
+//        Prompt prompt = new Prompt(String.valueOf(openAIMessageList), openAiChatOptions);
+
+//        System.out.println("ai response : "+chatResponse.toString());
+//        System.out.println(chatResponse.getResult().getOutput().getContent());
+
+//        return ResponseEntity.success(LLMResponseDTO.from(chatResponse.toString()));
 
 
 //    // cache에 저장된 질문을 가져오는 메소드

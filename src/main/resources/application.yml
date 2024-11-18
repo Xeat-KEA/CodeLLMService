@@ -21,9 +21,18 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true #??? ????.
     defer-datasource-initialization: true # ?????? ?? data.sql ??!!
-chat-GPT:
-  api-key: "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"
-  base-url: "https://api.openai.com/v1"
+  ai:
+    openai:
+      api-key: "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"
+      base-url: "https://api.openai.com"
+      chat:
+        options:
+          model: "gpt-4o"
+          max-tokens: 4000
+          temperature: 1
+          top-p: 1
+          frequency-penalty: 0
+          presence-penalty: 0
 eureka:
   client:
     register-with-eureka: true
