@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,15 @@ public class LLMResponseDTO {
         private String additionalNotes;
         @Schema(name = "testCases", description = "테스트 케이스 목록(front 필요 없을 확률이 높음.)")
         private List<TestCaseSpec> testCases;
+
+        // Client에서 사용할 응답 객체 생성자
+        @Builder
+        public CodeGenerateResponse(String title, String algorithm, String content, Difficulty difficulty) {
+            this.title = title;
+            this.algorithm = algorithm;
+            this.content = content;
+            this.difficulty = difficulty;
+        }
 
         @Builder
         @Getter
@@ -91,7 +101,6 @@ public class LLMResponseDTO {
             }
         }
 
-
         public static String makeContent(List<TestCaseSpec> contentTest){
             return "<table><tr><th>입력</th><th>출력</th></tr>" + contentTest.stream()
                     .map(test -> "<tr><td>"+test.getInput()+"</td><td>"+test.getOutput()+"</td></tr>")
@@ -99,6 +108,27 @@ public class LLMResponseDTO {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(name = "CodeGenerateClientResponse", description = "코딩테스트 생성 클라이언트 응답", title = "CodeGenerateClientResponse [코딩테스트 생성 클라이언트 응답]")
+    public static class CodeGenerateClientResponse extends CodeGenerateResponse{
+        @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
+        private Integer codeId;
+
+        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Integer codeId) {
+            super(title, algorithm, content, difficulty);
+            this.codeId = codeId;
+        }
+
+        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Integer codeId){
+            return new CodeGenerateClientResponse(codeGenerateResponse.getTitle(),
+                    codeGenerateResponse.getAlgorithm(),
+                    codeGenerateResponse.getContent(),
+                    codeGenerateResponse.getDifficulty(),
+                    codeId);
+        }
+    }
 
 
 

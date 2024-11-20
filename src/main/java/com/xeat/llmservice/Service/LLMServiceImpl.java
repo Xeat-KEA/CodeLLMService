@@ -28,7 +28,7 @@ public class LLMServiceImpl implements LLMService{
     private final OpenAiChatModel openAiChatModel;
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeGenerateResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
+    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
         String etc = request.getEtc() != null ? request.getEtc() : "null";
         UserMessage userMessage1 = new UserMessage("난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
         String jsonSchema = """
@@ -138,8 +138,14 @@ public class LLMServiceImpl implements LLMService{
                         .build());
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
-        //TODO : feign client로 code쪽 문제 정보 보내서 저장하고, codeId 받아 와서 던지기, 제목, 본문, 테스트케이스는 필요 없음. -> test case는 code쪽에서 저장.
-        return ResponseEntity.success(LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent()));
+        //TODO : feign client로 code쪽 문제 정보 보내서 저장.
+        LLMResponseDTO.CodeGenerateResponse sendToCodeFeignClient = LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent());
+
+        //로직에 의거한 codeId 생성
+        Integer codeId = 1;
+
+        //client는 받아온 codeId, 제목, 본문 response로 보내기.
+        return ResponseEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, codeId));
     }
 
     @Override
