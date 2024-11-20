@@ -37,11 +37,34 @@ public class LLMServiceImpl implements LLMService{
                   "properties": {
                     "title": {
                       "type": "string",
-                      "description": "코딩 테스트 문제의 제목을 나타냅니다. 문제의 핵심 주제나 목적을 간결히 나타내는 한글 문구여야 합니다."
+                      "description": "코딩 테스트 문제의 제목을 나타냅니다. 문제의 핵심 주제나 목적을 간결히 나타내는 한글 문구(must be)여야 합니다."
                     },
                     "content": {
                       "type": "string",
-                      "description": "문제 설명을 HTML 형식으로 작성합니다. 문제 설명에는 다음 요소들이 포함되어야 합니다: \\n\\n- **문제 설명:** 문제의 배경과 목표를 설명 \\n- **문제 제한 사항:** 문제 풀이 조건을 기술(필요시 null 가능) \\n- **입력 예시:** 문제 풀이를 위한 예제 입력값,  \\n- **출력 예시:** 예제 입력에 대한 출력값 \\n- **입출력 예 설명:** 예제 입력과 출력의 관계를 설명 \\n\\nHTML 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.\\n\\n입출력 예시의 형식은 다음을 준수해야 합니다: \\n1. 입력값은 각 항목을 줄바꿈(`\\n`)을 이용해 나타냅니다. 예를 들어, 그래프의 노드와 간선을 입력받는 경우 다음과 같은 형식을 사용합니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n2. 출력값도 동일하게 줄바꿈(`\\n`)으로 나타내며, 필요한 경우 문장 대신 값만 포함합니다."
+                      "description": "문제 설명을 HTML 형식으로 작성합니다. 문제 설명에는 다음 요소들이 포함되어야 합니다: \\n\\n- **문제 설명:** 문제의 배경과 목표를 설명 \\n- **문제 제한 사항:** 문제 풀이 조건을 기술(필요시 null 가능) \\n- **입력 예시:** 문제 풀이를 위한 예제 입력값,  \\n- **출력 예시:** 예제 입력에 대한 출력값 \\n- **입출력 예 설명:** 예제 입력과 출력의 관계를 설명 \\n\\nHTML 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.\\n\\n입출력 예시의 형식은 다음을 준수해야 합니다: \\n1. 입력값, 출력값은 각 항목을 줄바꿈(`\\n`)을 이용해 나타냅니다. 예를 들어, 그래프의 노드와 간선을 입력받는 경우 다음과 같은 형식을 사용합니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n2. 출력값은 필요한 경우 문장 대신 값만 포함합니다. \\n 3. 입출력(테스트케이스)은 항상 세가지를 담아야합니다."
+                    },
+                    
+                    "content_test_cases": {
+                      "type": "array",
+                      "description": "문제 설명에 들어간 입력 예시와 출력 예시에 대한 테스트케이스 세개 전부를 담습니다.  \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "input": {
+                            "type": "string",
+                            "description": "테스트 케이스의 입력 값입니다. 각 줄에 하나의 정보를 포함하며, 여러 줄로 이루어진 데이터를 줄바꿈(`\\n`) 형식으로 작성합니다."
+                          },
+                          "output": {
+                            "type": "string",
+                            "description": "해당 입력값에 대한 예상 출력값입니다. 어떠한 기호를 절대 사용하지 않으며, 출력 값이 여러 줄로 이루어져있다면, 출력값을 줄바꿈(`\\n`) 형식으로 작성합니다."
+                          }
+                        },
+                        "required": [
+                          "input",
+                          "output"
+                        ],
+                        "additionalProperties": false
+                      }
                     },
                     
                     "problem_info" : {
@@ -56,7 +79,7 @@ public class LLMServiceImpl implements LLMService{
                           },
                           "difficulty": {
                             "type": "string",
-                            "description": "문제의 난이도를 1~5 사이의 숫자로 나타냅니다. (1: 가장 쉬움, 5: 매우 어려움)"
+                            "description": "문제의 난이도를 LEVEL1~LEVEL5 사이의 레벨로 나타냅니다. (LEVEL1: 가장 쉬움, LEVEL5: 매우 어려움)"
                           },
                           "additional_notes": {
                             "type": "string",
@@ -74,7 +97,7 @@ public class LLMServiceImpl implements LLMService{
                     
                     "test_cases": {
                       "type": "array",
-                      "description": "테스트 케이스 배열로 문제 풀이 검증을 위한 입력과 출력 정보를 담습니다. 최대 20개의 케이스를 포함할 수 있습니다. \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
+                      "description": "테스트 케이스 배열로 문제 풀이 검증을 위한 입력과 출력 정보를 담습니다. 본문에 포함된 테스트케이스를 제외한 입력값과 출력값 쌍의 개수는 문제의 모든 경우의 수를 검증하는 최소의 수 입니다.  \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -82,14 +105,14 @@ public class LLMServiceImpl implements LLMService{
                             "type": "string",
                             "description": "테스트 케이스의 입력값입니다. 각 줄에 하나의 정보를 포함하며, 여러 줄로 이루어진 데이터를 줄바꿈(`\\n`) 형식으로 작성합니다."
                           },
-                          "expected_output": {
+                          "output": {
                             "type": "string",
-                            "description": "해당 입력값에 대한 예상 출력값입니다. 출력 값이 여러 줄로 이루어져있다면, 출력값을 줄바꿈(`\\n`) 형식으로 작성합니다."
+                            "description": "해당 입력값에 대한 예상 출력값입니다. 어떠한 기호를 절대 사용하지 않으며, 출력 값이 여러 줄로 이루어져있다면, 출력값을 줄바꿈(`\\n`) 형식으로 작성합니다."
                           }
                         },
                         "required": [
                           "input",
-                          "expected_output"
+                          "output"
                         ],
                         "additionalProperties": false
                       }
@@ -99,11 +122,14 @@ public class LLMServiceImpl implements LLMService{
                     "title",
                     "content",
                     "problem_info",
+                    "content_test_cases",
                     "test_cases"
                     ],
                   "additionalProperties": false
                 }
                 """;
+
+
 
         Prompt prompt = new Prompt(userMessage1,
                 OpenAiChatOptions.builder()
@@ -112,26 +138,37 @@ public class LLMServiceImpl implements LLMService{
                         .build());
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
-        //TODO : feign client로 code쪽 문제 정보 보내서 저장하기
-        //TODO : feign client로 test case 정보 저장 요청?
-        //TODO : 확인하여, front에 보내는 정보 test case 빼야하는지 확인
+        //TODO : feign client로 code쪽 문제 정보 보내서 저장하고, codeId 받아 와서 던지기, 제목, 본문, 테스트케이스는 필요 없음. -> test case는 code쪽에서 저장.
         return ResponseEntity.success(LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent()));
     }
 
     @Override
     public ResponseEntity<LLMResponseDTO> chat(LLMRequestDTO.chatMessage request) {
         //TODO: 코딩테스트 문제를 만들어달라는 요청을 받을 경우, 생성하지 않도록 수정
-        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
-        //1. 사용자의 메세지 받기
-        //2. 사용자 신원 조회
-        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
-        //b. 기존 사용자 : 사용자 기존 기록 가져와서 OpenAI에 전달
-        //c. 기존 사용자 중
 
-        if(request.getCodeHistoryId()==null){
-//            getuserLanguage
+
+        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
+
+
+        //1. 사용자의 메세지 받기
+
+        String identity;
+
+        //2. 사용자 신원 조회
+        if(llmRepository.existsById(Long.valueOf(request.getUserId()))){
+            //TODO: 레디스 캐시 확인 후
+            identity = "existingUser";
+        }
+        else identity = "newUser";
+
+        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
+        if(identity.equals("newUser")){
 
         }
+        //b. 기존 사용자 : 기존 기록 중 현재 질문과 가장 유사한 질문과 가장 유사하지 않은 질문 반환하여 전달.
+
+
+        //c. 기존 사용자 중 한 문제에 관한 대화기록이 있는 경우 : 해당 문제에 대한 대화기록 가져와서 OpenAI에 전달.
 
 
         return null;
