@@ -157,6 +157,7 @@ public class LLMServiceImpl implements LLMService{
 
 
         //1. 사용자의 메세지 받기
+        UserMessage userMessage = new UserMessage(request.getChatMessage());
 
         String identity;
 
