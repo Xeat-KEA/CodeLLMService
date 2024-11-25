@@ -17,6 +17,8 @@ public class LLMRequestDTO {
         private String chatMessage;
         private Integer userId;
         private Integer codeHistoryId;
+        private String codeLanguage;
+        private Boolean isNotReqCodeGen;
     }
 
     @Builder

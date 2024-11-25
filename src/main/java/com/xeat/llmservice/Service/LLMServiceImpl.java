@@ -8,24 +8,35 @@ import com.xeat.llmservice.Repository.LLMRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 
 
 @Service
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class LLMServiceImpl implements LLMService{
+public class LLMServiceImpl implements LLMService {
     private final LLMRepository llmRepository;
     private final LLMHistoryRepository llmHistoryRepository;
     private final OpenAiChatModel openAiChatModel;
+    private final VectorStore vectorStore;
 
     @Override
     public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
@@ -130,7 +141,6 @@ public class LLMServiceImpl implements LLMService{
                 """;
 
 
-
         Prompt prompt = new Prompt(userMessage1,
                 OpenAiChatOptions.builder()
                         .withModel("gpt-4o")
@@ -150,8 +160,10 @@ public class LLMServiceImpl implements LLMService{
 
     @Override
     public ResponseEntity<LLMResponseDTO> chat(LLMRequestDTO.chatMessage request) {
-        //TODO: 코딩테스트 문제를 만들어달라는 요청을 받을 경우, 생성하지 않도록 수정
-
+        //코딩테스트 문제를 만들어달라는 요청을 받을 경우, 유사도 확인하여, 생성하지 않도록 수정
+        if(request.getIsNotReqCodeGen() && banQuestionChecker(request.getChatMessage())) {
+            return ResponseEntity.error(400, "코딩테스트 생성 요청은 금지되어 있습니다.", null);
+        }
 
         //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
 
@@ -162,14 +174,14 @@ public class LLMServiceImpl implements LLMService{
         String identity;
 
         //2. 사용자 신원 조회
-        if(llmRepository.existsById(Long.valueOf(request.getUserId()))){
+        if (llmRepository.existsById(Long.valueOf(request.getUserId()))) {
             //TODO: 레디스 캐시 확인 후
-            identity = "existingUser";
-        }
-        else identity = "newUser";
+            identity = "firstChat";
+        } else identity = "firstConnection";
 
         //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
-        if(identity.equals("newUser")){
+        if (identity.equals("firstConnection")) {
+            //client에서 코테문제 언어 받아오기?
 
         }
         //b. 기존 사용자 : 기존 기록 중 현재 질문과 가장 유사한 질문과 가장 유사하지 않은 질문 반환하여 전달.
@@ -180,6 +192,47 @@ public class LLMServiceImpl implements LLMService{
 
         return null;
     }
+
+    private boolean banQuestionChecker(String chatMessage) {
+        return !vectorStore.similaritySearch(
+                SearchRequest.query(chatMessage)
+                        .withFilterExpression(
+                                new Filter.Expression(
+                                    Filter.ExpressionType.EQ,
+                                    new Filter.Key("type"),
+                                    new Filter.Value("banGeneratingQuestion")))
+                        .withSimilarityThreshold(0.9f)
+        ).isEmpty();
+    }
+
+    public List<Message> processQuestion(Integer userId, String question) {
+
+        // Redis에서 가장 유사한 질문 2개 검색
+        List<Document> similarQuestions = vectorStore.similaritySearch(
+                SearchRequest.query(question)
+                        .withFilterExpression(
+                                new Filter.Expression(
+                                        Filter.ExpressionType.EQ,
+                                        new Filter.Key("userId"),
+                                        new Filter.Value(userId.toString())
+                                )
+                        )
+                        .withTopK(2)
+        );
+
+
+        // 유사한 질문 2개 추출
+        String mostSimilar = !similarQuestions.isEmpty() ? similarQuestions.get(0).getContent() : "없음";
+        String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "없음";
+
+        // ChatGPT 전달 데이터 구성
+        UserMessage userMessage = new UserMessage(question);
+        SystemMessage mostSimilarMessage = new SystemMessage("가장 유사한 질문: " + mostSimilar);
+        SystemMessage secondMostSimilarMessage = new SystemMessage("두 번째로 유사한 질문: " + secondMostSimilar);
+
+        return List.of(userMessage, mostSimilarMessage, secondMostSimilarMessage);
+    }
+}
 
     //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeContentPropertiesDetail.createCodeContentPropertiesDetail;
 //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeGeneratorFunctionDetail.createCodeGeneratorFunctionDetail;
@@ -215,8 +268,6 @@ public class LLMServiceImpl implements LLMService{
 //    private final RedisTemplate<String, Object> redisTemplate;
 //    public void
 
-
-}
 
 //    private final WebClient webClient;
 //    private final ObjectMapper objectMapper;

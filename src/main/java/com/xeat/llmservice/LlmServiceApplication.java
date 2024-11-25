@@ -1,7 +1,9 @@
 package com.xeat.llmservice;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.servers.Server;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -26,5 +28,11 @@ public class LlmServiceApplication {
 		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
 		localeResolver.setDefaultLocale(Locale.KOREA);
 		return localeResolver;
+	}
+
+	// 질문과 응답 간의 유사성(벡터화)을 계산하기 위한 EmbeddingModel을 생성합니다.
+	@Bean
+	public EmbeddingModel embeddingModel(@Value("${spring.ai.openai.api-key}") String apiKey)  {
+		return new OpenAiEmbeddingModel(new OpenAiApi(System.getenv(apiKey)));
 	}
 }
