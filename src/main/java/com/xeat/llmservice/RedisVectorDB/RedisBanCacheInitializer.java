@@ -1,12 +1,11 @@
-package com.xeat.llmservice.VectorDB;
+package com.xeat.llmservice.RedisVectorDB;
 
 import lombok.AllArgsConstructor;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.RedisVectorStore;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +13,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class RedisBanCacheInitializer {
 
-    private final RedisVectorStore vectorStore;
+    private final VectorStore vectorStore;
+
 
     public void init(){
         List<String> banQuestions = List.of(
@@ -29,7 +29,6 @@ public class RedisBanCacheInitializer {
         List<Document> documents = banQuestions.stream()
                 .map(banQuestion -> new Document(banQuestion, Map.of("type", "banGeneratingQuestion")))
                 .toList();
-
         vectorStore.add(documents);
     }
 }

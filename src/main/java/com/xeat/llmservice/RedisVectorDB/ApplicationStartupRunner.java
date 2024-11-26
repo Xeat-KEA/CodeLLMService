@@ -1,4 +1,4 @@
-package com.xeat.llmservice.VectorDB;
+package com.xeat.llmservice.RedisVectorDB;
 
 import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

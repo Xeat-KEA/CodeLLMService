@@ -29,10 +29,4 @@ public class LlmServiceApplication {
 		localeResolver.setDefaultLocale(Locale.KOREA);
 		return localeResolver;
 	}
-
-	// 질문과 응답 간의 유사성(벡터화)을 계산하기 위한 EmbeddingModel을 생성합니다.
-	@Bean
-	public EmbeddingModel embeddingModel(@Value("${spring.ai.openai.api-key}") String apiKey)  {
-		return new OpenAiEmbeddingModel(new OpenAiApi(System.getenv(apiKey)));
-	}
 }

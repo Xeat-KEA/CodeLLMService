@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 @Builder
+@Table(name = "llm_history")
 public class LLMHistoryEntity {
     // LLMHistoryEntity는 MySQL(SourceDB)에 저장될 데이터의 형식을 정의한 클래스
     // 각 채팅방 별로 대화 내용을 저장하는 개념으로 생각하면 된다.
@@ -23,7 +24,7 @@ public class LLMHistoryEntity {
     @JoinColumn(name = "chatId")
     private LLMEntity llmEntity;
 
-    private String chatMessage;
-    private String chatAnswer;
+    private String question;
+    private String answer;
 
 }

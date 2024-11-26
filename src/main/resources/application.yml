@@ -3,13 +3,14 @@ spring:
     name : LLMService
   data:
     redis:
-      host: localhost
+      host: redis-stack
       port: 6379
   datasource:
     url: jdbc:mysql://localhost:3306/test_xeat
     username: hurray
     password: rlaalstj1!
     driver-class-name: com.mysql.cj.jdbc.Driver
+    name: test_xeat
 
   kafka:
     bootstrap-servers: localhost:9092

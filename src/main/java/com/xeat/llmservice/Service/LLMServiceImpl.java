@@ -167,6 +167,7 @@ public class LLMServiceImpl implements LLMService {
 
         //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
 
+        //feign client에서 코테 문제 정보 받아와서 Redis cache에 저장
 
         //1. 사용자의 메세지 받기
         UserMessage userMessage = new UserMessage(request.getChatMessage());
@@ -180,8 +181,10 @@ public class LLMServiceImpl implements LLMService {
         } else identity = "firstConnection";
 
         //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
+        //feign client로 코테 문제정보 받아와서 Redis cache에 저장
+
         if (identity.equals("firstConnection")) {
-            //client에서 코테문제 언어 받아오기?
+
 
         }
         //b. 기존 사용자 : 기존 기록 중 현재 질문과 가장 유사한 질문과 가장 유사하지 않은 질문 반환하여 전달.
