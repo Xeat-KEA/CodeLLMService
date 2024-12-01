@@ -13,7 +13,7 @@ pipeline {
             steps {
                 git branch: 'release/CT-184',
                 credentialsId: 'jenkins-github',
-                url: 'https://github.com/Xeat-KEA/LLMService.git'
+                url: 'https://github.com/Xeat-KEA/CodeLLMService.git'
 
             }
         }
