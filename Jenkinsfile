@@ -11,9 +11,23 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'develop', url: 'https://github.com/Xeat-KEA/LLMService.git'
+                git branch: 'release/CT-184', url: 'https://github.com/Xeat-KEA/LLMService.git'
             }
         }
+
+        stages {
+                stage('Use .env') {
+                    steps {
+                        // Credentials로부터 .env 파일 가져오기
+                        withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
+                            sh '''
+                            echo "Using .env file from $ENV_FILE"
+                            cat $ENV_FILE
+                            '''
+                        }
+                    }
+                }
+            }
 
         stage('Build Gradle Project') {
             steps {
