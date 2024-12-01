@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'release/CT-184',
-                credentialsId: 'jenkins-github'
+                credentialsId: 'jenkins-github',
                 url: 'https://github.com/Xeat-KEA/LLMService.git'
 
             }
