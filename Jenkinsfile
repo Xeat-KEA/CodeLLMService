@@ -36,7 +36,7 @@ pipeline {
                 sh '''
                     echo 'gradlew 빌드 시작'
                     chmod +x ./gradlew
-                    ./gradlew clean build
+                    ./gradlew clean build -Dspring.profiles.active=prod
                 '''
             }
         }
