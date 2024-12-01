@@ -1,23 +1,23 @@
 spring:
   config:
     import: optional:file:.env[yaml]
-  data:
-    redis:
-      host: redis-stack
-      port: 6379
+#  data:
+#    redis:
+#      host: redis-stack
+#      port: 6379
   datasource:
     url: ${MYSQL_URL_PROD}
     username: ${MYSQL_USERNAME_PROD}
     password: ${MYSQL_PASSWORD_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     name: ${MYSQL_NAME_PROD}
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: llm-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#  kafka:
+#    bootstrap-servers: localhost:9092
+#    consumer:
+#      group-id: llm-service
+#      auto-offset-reset: earliest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
