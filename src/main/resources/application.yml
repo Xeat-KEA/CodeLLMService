@@ -2,8 +2,8 @@ spring:
   application:
     name: LLMService
   profiles:
-    active: dev
-#    active: prod
+#    active: dev
+    active: prod
   devtools:
     restart:
       enabled: true
