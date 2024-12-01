@@ -1,43 +1,31 @@
 spring:
   application:
-    name : LLMService
-  data:
-    redis:
-      host: redis-stack
-      port: 6379
-  datasource:
-    url: jdbc:mysql://localhost:3306/test_xeat
-    username: hurray
-    password: rlaalstj1!
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    name: test_xeat
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: llm-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-        key-serializer: org.apache.kafka.common.serialization.StringSerializer
-        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    name: LLMService
+  profiles:
+    active: dev
+#    active: prod
+  devtools:
+    restart:
+      enabled: true
+  config:
+    import: optional:file:.env[properties]
 
   jpa:
     hibernate:
-      ddl-auto: update #?? ?? DB
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: true #???? ? ??? ????
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true #??? ????.
-    defer-datasource-initialization: true # ?????? ?? data.sql ??!!
+        format_sql: true
+    defer-datasource-initialization: true
+
   ai:
     openai:
-      api-key: "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"
-      base-url: "https://api.openai.com"
+      api-key: ${CHATGPT_API_KEY}
+      base-url: ${CHATGPT_API_URL}
       chat:
         options:
           model: "gpt-4o"
@@ -46,6 +34,7 @@ spring:
           top-p: 1
           frequency-penalty: 0
           presence-penalty: 0
+
 springdoc:
   packages-to-scan: com.xeat.llmservice
   default-consumes-media-type: application/json;charset=UTF-8
@@ -55,9 +44,10 @@ springdoc:
     disable-swagger-default-url: true
     display-request-duration: true
     operations-sorter: alpha
+
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://172.16.211.57:19090/eureka/
+      defaultZone: ${EUREKA_SERVER_URL}
