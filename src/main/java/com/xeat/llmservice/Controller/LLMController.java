@@ -22,7 +22,8 @@ public class LLMController {
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<LLMResponseDTO> chat(@RequestBody LLMRequestDTO.chatMessage request) {
-        return llmService.chat(request);
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(@RequestHeader("UserId") String userId,
+                                               @RequestBody LLMRequestDTO.chatMessage request) {
+        return llmService.chat(userId, request);
     }
 }

@@ -2,12 +2,15 @@ package com.xeat.llmservice.Service;
 
 import com.xeat.llmservice.DTO.LLMRequestDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
+import com.xeat.llmservice.Entity.LLMEntity;
+import com.xeat.llmservice.Entity.LLMHistoryEntity;
 import com.xeat.llmservice.Global.ResponseEntity;
 import com.xeat.llmservice.Repository.LLMHistoryRepository;
 import com.xeat.llmservice.Repository.LLMRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -37,6 +41,9 @@ public class LLMServiceImpl implements LLMService {
     private final LLMHistoryRepository llmHistoryRepository;
     private final OpenAiChatModel openAiChatModel;
     private final VectorStore vectorStore;
+    private final ChatClient chatClient;
+
+
 
     @Override
     public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
@@ -159,41 +166,76 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO> chat(LLMRequestDTO.chatMessage request) {
-        //코딩테스트 문제를 만들어달라는 요청을 받을 경우, 유사도 확인하여, 생성하지 않도록 수정
-        if(request.getIsNotReqCodeGen() && banQuestionChecker(request.getChatMessage())) {
-            return ResponseEntity.error(400, "코딩테스트 생성 요청은 금지되어 있습니다.", null);
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(String userId, LLMRequestDTO.chatMessage request) {
+        ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
+                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
+                .build()
+                .prompt()
+                .user(request.getChatMessage())
+                .call()
+                .chatResponse();
+
+
+        if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
+            //TODO : feignClient로 codeHistoryId 받아오기
+            LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
+                    .userId(userId)
+                    .codeHistoryId(1)
+                    .build()));
+
+            LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
+                    .chatHistoryId(1)
+                    .question(request.getChatMessage())
+                    .answer(chatResponse.getResult().getOutput().getContent())
+                    .llmEntity(llmEntity)
+                    .build()));
+
+            return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+
         }
+        //코딩테스트 문제를 만들어달라는 요청을 받을 경우, 유사도 확인하여, 생성하지 않도록 수정
+//        if(request.getIsNotReqCodeGen() && banQuestionChecker(request.getChatMessage())) {
+//            return ResponseEntity.error(400, "코딩테스트 생성 요청은 금지되어 있습니다.", null);
+//        }
 
-        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드
-
+        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드 구현
         //feign client에서 코테 문제 정보 받아와서 Redis cache에 저장
 
-        //1. 사용자의 메세지 받기
-        UserMessage userMessage = new UserMessage(request.getChatMessage());
 
-        String identity;
+
+        LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
+                .chatHistoryId(request.getCodeHistoryId())
+                .question(request.getChatMessage())
+                .answer(chatResponse.getResult().getOutput().getContent())
+                .llmEntity(llmRepository.findByCodeHistoryId(request.getCodeHistoryId()))
+                .build()));
+
+
+        return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+
+
+        //1. 사용자의 메세지 받기
+
 
         //2. 사용자 신원 조회
-        if (llmRepository.existsById(Long.valueOf(request.getUserId()))) {
-            //TODO: 레디스 캐시 확인 후
-            identity = "firstChat";
-        } else identity = "firstConnection";
-
-        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
-        //feign client로 코테 문제정보 받아와서 Redis cache에 저장
-
-        if (identity.equals("firstConnection")) {
-
-
-        }
+//        if (llmRepository.existsById(Long.valueOf(request.getUserId()))) {
+//            //TODO: 레디스 캐시 확인 후
+//            identity = "firstChat";
+//        } else identity = "firstConnection";
+//
+//        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
+//        //feign client로 코테 문제정보 받아와서 Redis cache에 저장
+//
+//        if (identity.equals("firstConnection")) {
+//
+//
+//        }
         //b. 기존 사용자 : 기존 기록 중 현재 질문과 가장 유사한 질문과 가장 유사하지 않은 질문 반환하여 전달.
 
 
         //c. 기존 사용자 중 한 문제에 관한 대화기록이 있는 경우 : 해당 문제에 대한 대화기록 가져와서 OpenAI에 전달.
 
 
-        return null;
     }
 
     private boolean banQuestionChecker(String chatMessage) {

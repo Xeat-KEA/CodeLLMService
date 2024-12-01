@@ -37,6 +37,7 @@ dependencies {
 	implementation 'redis.clients:jedis:5.0.2'
 	implementation 'org.springframework.ai:spring-ai-redis-store-spring-boot-starter'
 	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.apache.kafka:kafka-clients'
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
@@ -57,10 +58,15 @@ dependencies {
 	//JSON parsing
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+
+	implementation 'io.debezium:debezium-core:2.3.1.Final'
 	// Debezium MySQL Connector
 	implementation 'io.debezium:debezium-connector-mysql:2.3.0.Final'
 	// Debezium Embedded Engine
 	implementation 'io.debezium:debezium-embedded:2.3.0.Final'
+
+	// 환경 변수
+	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
 
 
 

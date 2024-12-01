@@ -24,7 +24,9 @@ public class LLMHistoryEntity {
     @JoinColumn(name = "chatId")
     private LLMEntity llmEntity;
 
+    @Lob
     private String question;
+    @Lob
     private String answer;
 
 }

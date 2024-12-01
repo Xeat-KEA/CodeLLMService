@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LLMRepository extends JpaRepository <LLMEntity, Long> {
-
+    boolean existsByCodeHistoryId(Integer codeHistoryId);
+    LLMEntity findByCodeHistoryId(Integer codeHistoryId);
 }
