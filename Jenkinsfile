@@ -44,7 +44,7 @@ pipeline {
             steps {
                 script {
                     // 도커 이미지 빌드, 도커 허브로 푸시
-                    sh 'docker build --build-arg JAR_FILE=build/libs/LLMService-0.0.1-SNAPSHOT.jar -t ${IMAGE_NAME}:latest .'
+                    sh 'docker build --build-arg BASE_IMAGE=openjdk:17-jre --build-arg JAR_FILE=build/libs/LLMService-0.0.1-SNAPSHOT.jar -t ${IMAGE_NAME}:latest .'
                     withCredentials([usernamePassword(credentialsId: 'docker_credential_id', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                         docker.withRegistry('https://index.docker.io/v1/', 'docker_credential_id') {
                             sh '''
