@@ -64,7 +64,7 @@ pipeline {
                         echo "기존 컨테이너 종료"
                         docker rm -f llmservice || true
                         echo "컨테이너 실행 시작"
-                        docker run -d --name llmservice -p 8080:8080 ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker run -d --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest
                     '''
                 }
             }
