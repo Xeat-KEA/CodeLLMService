@@ -40,5 +40,34 @@ pipeline {
                 '''
             }
         }
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    // 도커 이미지 빌드, 도커 허브로 푸시
+                    sh 'docker build --build-arg JAR_FILE=build/libs/LLMService-0.0.1-SNAPSHOT.jar -t ${IMAGE_NAME}:latest .'
+                    withCredentials([usernamePassword(credentialsId: 'docker_credential_id', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        docker.withRegistry('https://index.docker.io/v1/', 'docker_credential_id') {
+                            sh '''
+                                echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                                docker push "${IMAGE_NAME}:latest"
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    sh '''
+                        echo "기존 컨테이너 종료"
+                        docker rm -f llmservice || true
+                        echo "컨테이너 실행 시작"
+                        docker run -d --name llmservice -p 8080:8080 ${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
     }
 }
