@@ -25,7 +25,8 @@ pipeline {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
                     cat $ENV_FILE
-                    cp $ENV_FILE src/main/resources/.env  # .env 파일을 github 코드 빌드 전 프로젝트 디렉토리로 복사
+                    ls -l $WORKSPACE/src/main/resources
+                    cp $ENV_FILE $WORKSPACE/src/main/resources/.env
                     '''
                 }
             }
