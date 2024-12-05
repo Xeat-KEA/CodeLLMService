@@ -64,8 +64,15 @@ pipeline {
                         sh '''
                             echo "기존 컨테이너 종료"
                             docker rm -f llmservice || true
+                            
+                            echo "새 컨테이너 생성 준비"
+                            CONTAINER_ID=$(docker create --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest)
+                
+                            echo "컨테이너에 .env 파일 복사"
+                            docker cp "$ENV_FILE" $CONTAINER_ID:/.env
+                
                             echo "컨테이너 실행 시작"
-                            docker run -d --name llmservice -p 8080:8080 --env-file "$ENV_FILE" ${IMAGE_NAME}:latest
+                            docker start $CONTAINER_ID
                         '''
                     }
                 }
