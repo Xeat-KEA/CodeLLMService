@@ -60,12 +60,14 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh '''
-                        echo "기존 컨테이너 종료"
-                        docker rm -f llmservice || true
-                        echo "컨테이너 실행 시작"
-                        docker run -d --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest
-                    '''
+                    withCredentials([file(credentialsId: 'env-file-24-12-02', variable: 'ENV_FILE')]) {
+                        sh '''
+                            echo "기존 컨테이너 종료"
+                            docker rm -f llmservice || true
+                            echo "컨테이너 실행 시작"
+                            docker run -d --name llmservice -p 8080:8080 --env-file $ENV_FILE ${IMAGE_NAME}:latest
+                        '''
+                    }
                 }
             }
         }
