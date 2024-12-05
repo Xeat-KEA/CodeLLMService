@@ -25,7 +25,7 @@ pipeline {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
                     cat $ENV_FILE
-                    cp $ENV_FILE .env  # Docker 빌드 컨텍스트에 복사
+                    cp $ENV_FILE src/main/resources/.env  # .env 파일을 github 코드 빌드 전 프로젝트 디렉토리로 복사
                     '''
                 }
             }
