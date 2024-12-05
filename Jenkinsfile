@@ -18,13 +18,14 @@ pipeline {
             }
         }
 
-        stage('Use .env') {
+        stage('Use and Copy .env') {
             steps {
                 // Credentials로부터 .env 파일 가져오기
                 withCredentials([file(credentialsId: 'env-file-24-12-02', variable: 'ENV_FILE')]) {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
                     cat $ENV_FILE
+                    cp $ENV_FILE .env  # Docker 빌드 컨텍스트에 복사
                     '''
                 }
             }
