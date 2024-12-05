@@ -69,7 +69,7 @@ pipeline {
                             CONTAINER_ID=$(docker create --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest)
                 
                             echo "컨테이너에 .env 파일 복사"
-                            docker cp "$ENV_FILE" $CONTAINER_ID:/.env
+                            docker cp "$ENV_FILE" $CONTAINER_ID:/src/main/resources/.env
                 
                             echo "컨테이너 실행 시작"
                             docker start $CONTAINER_ID
