@@ -27,6 +27,7 @@ pipeline {
                     cat $ENV_FILE
                     ls -ld $WORKSPACE/src/main/resources
                     ls -ld $WORKSPACE/src/main/
+                    ls -l $ENV_FILE
                     cp $ENV_FILE $WORKSPACE/src/main/resources/.env
                     '''
                 }
