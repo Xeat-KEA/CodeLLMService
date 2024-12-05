@@ -60,21 +60,12 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'env-file-24-12-02', variable: 'ENV_FILE')]) {
-                        sh '''
-                            echo "기존 컨테이너 종료"
-                            docker rm -f llmservice || true
-                            
-                            echo "새 컨테이너 생성 준비"
-                            CONTAINER_ID=$(docker create --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest)
-                
-                            echo "컨테이너에 .env 파일 복사"
-                            docker cp "$ENV_FILE" $CONTAINER_ID:/src/main/resources/.env
-                
-                            echo "컨테이너 실행 시작"
-                            docker start $CONTAINER_ID
-                        '''
-                    }
+                    sh '''
+                        echo "기존 컨테이너 종료"
+                        docker rm -f llmservice || true
+                        echo "컨테이너 실행 시작"
+                        docker run -d --name llmservice -p 8080:8080 ${IMAGE_NAME}:latest
+                    '''
                 }
             }
         }
