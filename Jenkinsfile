@@ -25,7 +25,8 @@ pipeline {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
                     cat $ENV_FILE
-                    ls -l $WORKSPACE/src/main/resources
+                    ls -ld $WORKSPACE/src/main/resources
+                    ls -ld $WORKSPACE/src/main/
                     cp $ENV_FILE $WORKSPACE/src/main/resources/.env
                     '''
                 }
