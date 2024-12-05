@@ -24,11 +24,10 @@ pipeline {
                 withCredentials([file(credentialsId: 'env-file-24-12-02', variable: 'ENV_FILE')]) {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
-                    cat $ENV_FILE
-                    ls -ld $WORKSPACE/src/main/resources
-                    ls -ld $WORKSPACE/src/main/
-                    ls -l $ENV_FILE
+                    chmod 644 $ENV_FILE
                     cp $ENV_FILE $WORKSPACE/src/main/resources/.env
+                    ls -l /var/jenkins_home/workspace/llm-service/src/main/resources/.env
+
                     '''
                 }
             }
