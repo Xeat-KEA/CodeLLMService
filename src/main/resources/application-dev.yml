@@ -1,6 +1,6 @@
 spring:
-  config:
-    import: optional:file:.env[yaml]
+#  config:
+#    import: optional:file:.env[yaml]
   data:
     redis:
       host: ${REDIS_HOST_LOCAL}
@@ -23,4 +23,3 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 debezium:
-  
