@@ -1,6 +1,6 @@
 spring:
   application:
-    name: LLMService
+    name: llm-service
   profiles:
     active: dev
 #    active: prod
