@@ -8,7 +8,7 @@ spring:
     restart:
       enabled: true
   config:
-    import: optional:file:.env[properties]
+    import: optional:configserver:http://codingtext:1111@${CONFIG_SERVER_URL}
 
   jpa:
     hibernate:
@@ -24,8 +24,8 @@ spring:
 
   ai:
     openai:
-      api-key: ${CHATGPT_API_KEY}
-      base-url: ${CHATGPT_API_URL}
+      api-key: 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
+      base-url: https://api.openai.com
       chat:
         options:
           model: "gpt-4o"
@@ -50,4 +50,4 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
+      defaultZone: http://172.16.211.57:19090/eureka/

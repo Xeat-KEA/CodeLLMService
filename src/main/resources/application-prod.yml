@@ -1,16 +1,16 @@
 spring:
-  config:
-    import: optional:file:.env[yaml]
+#  config:
+#    import: optional:file:.env[yaml]
 #  data:
 #    redis:
 #      host: redis-stack
 #      port: 6379
   datasource:
-    url: ${MYSQL_URL_PROD}
-    username: ${MYSQL_USERNAME_PROD}
-    password: ${MYSQL_PASSWORD_PROD}
+    url: jdbc:mysql://graproject.cze848wk2ns9.ap-northeast-2.rds.amazonaws.com:3306/llm_service
+    username: jash
+    password: qkrwjdwo2$
     driver-class-name: com.mysql.cj.jdbc.Driver
-    name: ${MYSQL_NAME_PROD}
+    name: llm_service
 #  kafka:
 #    bootstrap-servers: localhost:9092
 #    consumer:
