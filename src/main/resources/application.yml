@@ -7,8 +7,8 @@ spring:
   devtools:
     restart:
       enabled: true
-#  config:
-#    import: optional:configserver:http://codingtext:1111@${CONFIG_SERVER_URL}
+  config:
+    import: optional:configserver:http://codingtext:1111@${CONFIG_SERVER_URL}
 
   jpa:
     hibernate:
@@ -24,7 +24,7 @@ spring:
 
   ai:
     openai:
-      api-key: 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
+      api-key: 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
       base-url: https://api.openai.com
       chat:
         options:
@@ -50,4 +50,4 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://172.16.211.57:19090/eureka/
+      defaultZone: ${EUREKA_SERVER_URL}
