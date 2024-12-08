@@ -25,6 +25,7 @@ pipeline {
                     sh '''
                     echo "Using .env file from $ENV_FILE"
                     chmod 644 $ENV_FILE
+                    chmod 644 var/jenkins_home/workspace/llm-service/src/main/resources/.env || true
                     cp $ENV_FILE src/main/resources/.env
                     ls -l /var/jenkins_home/workspace/llm-service/src/main/resources/.env
 
