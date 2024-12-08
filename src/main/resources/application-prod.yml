@@ -1,10 +1,10 @@
 spring:
   config:
-    import: optional:file:.env[yaml]
-#  data:
-#    redis:
-#      host: redis-stack
-#      port: 6379
+    import: optional:file:.env[properties]
+  data:
+    redis:
+      host: redis-stack
+      port: 6379
   datasource:
     url: ${MYSQL_URL_PROD}
     username: ${MYSQL_USERNAME_PROD}

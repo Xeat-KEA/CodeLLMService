@@ -2,13 +2,13 @@ spring:
   application:
     name: llm-service
   profiles:
-    active: dev
-#    active: prod
+#    active: dev
+    active: prod
   devtools:
     restart:
       enabled: true
   config:
-    import: optional:file:.env[yaml]
+    import: optional:file:.env[properties]
 
   jpa:
     hibernate:
@@ -24,8 +24,8 @@ spring:
 
   ai:
     openai:
-      api-key: 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
-      base-url: https://api.openai.com
+      api-key: ${CHATGPT_API_KEY}
+      base-url: ${CHATGPT_API_URL}
       chat:
         options:
           model: "gpt-4o"
