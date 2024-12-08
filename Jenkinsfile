@@ -75,5 +75,10 @@ pipeline {
                 }
             }
         }
+        post {
+            always {
+                cleanWs()  // 빌드 후 작업 공간 정리
+            }
+        }
     }
 }
