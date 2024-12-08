@@ -8,7 +8,7 @@ spring:
     restart:
       enabled: true
   config:
-    import: optional:configserver:http://codingtext:1111@${CONFIG_SERVER_URL}
+    import: optional:file:.env[yaml]
 
   jpa:
     hibernate:
