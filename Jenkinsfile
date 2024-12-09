@@ -26,6 +26,7 @@ pipeline {
         stage('Build Gradle Project') {
             steps {
                 sh '''
+                    cd /var/lib/jenkins/workspace/llm-service
                     echo 'gradlew 빌드 시작'
                     chmod +x ./gradlew
                     ./gradlew clean build 
