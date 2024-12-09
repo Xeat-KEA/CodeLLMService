@@ -7,11 +7,8 @@ pipeline {
     environment {
         IMAGE_NAME = "hurraypersimmon/codingtext"  // Docker Hub ID와 리포지토리 이름
         IMAGE_TAG = "codellmservice"
-        TARGET_HOST = "s119@172.16.211.119"
-        SSH_CREDENTIALS = "jenkins_private_key"
         ACTIVE_PROFILE = "prod"
         CONFIG_SERVER_URL = "172.16.211.110:9000"
-        SERVER_NAME = "s119"
     }
 
     stages {
@@ -60,7 +57,7 @@ pipeline {
                                   --env ACTIVE_PROFILE=${ACTIVE_PROFILE}\
                                   --env CONFIG_SERVER_URL=${CONFIG_SERVER_URL}\
                                   ${IMAGE_NAME}:${IMAGE_TAG}
-//                    docker image prune -a -f''', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                    docker image prune -a -f''', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
             }
         }
     }
