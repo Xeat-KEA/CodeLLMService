@@ -1,6 +1,7 @@
 package com.xeat.llmservice.RedisVectorDB;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
@@ -18,7 +19,10 @@ import redis.clients.jedis.search.Schema;
 
 @Configuration
 @AllArgsConstructor
+@NoArgsConstructor
 public class RedisVectorStoreConfiguration {
+
+    @Value("${spring.data.redis.host}") String host;
 
     @Bean
     public RedisVectorStore.RedisVectorStoreConfig redisVectorStoreConfig() {
@@ -36,7 +40,7 @@ public class RedisVectorStoreConfiguration {
 
     @Bean
     public JedisPooled jedisPooled() {
-        return new JedisPooled("localhost", 6379);
+        return new JedisPooled(host, 6379);
     }
 
     @Bean
