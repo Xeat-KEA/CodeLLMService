@@ -11,6 +11,7 @@ pipeline {
         SSH_CREDENTIALS = "jenkins_private_key"
         ACTIVE_PROFILE = "prod"
         CONFIG_SERVER_URL = "172.16.211.110:9000"
+        SERVER_NAME = "s119"
     }
 
     stages {
@@ -50,10 +51,11 @@ pipeline {
 
         stage('Docker Image Deploy') {
             steps {
-                sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+                // jenkins configure에서 SSH 설정을 통해 접속
+                sshPublisher(publishers: [sshPublisherDesc(configName: ${SERVER_NAME}, transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
                     docker rm -f ${IMAGE_TAG} || true
                     docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
-                    docker run --name compileservice -d --network host --restart on-failure \
+                    docker run --name ${IMAGE_TAG} -d --network host --restart on-failure \
                                   --env ACTIVE_PROFILE=${ACTIVE_PROFILE}\
                                   --env CONFIG_SERVER_URL=${CONFIG_SERVER_URL}\
                                   ${IMAGE_NAME}:${IMAGE_TAG}
