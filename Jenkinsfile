@@ -4,6 +4,7 @@ pipeline {
         gradle 'gradle'
     }
 
+
     environment {
         IMAGE_NAME = "hurraypersimmon/codingtext"  // Docker Hub ID와 리포지토리 이름
         IMAGE_TAG = "codellmservice"
