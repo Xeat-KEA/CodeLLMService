@@ -11,6 +11,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.search.Schema;
 
@@ -33,8 +35,8 @@ public class RedisVectorStoreConfiguration {
     }
 
     @Bean
-    public JedisPooled jedisPooled() {
-        return new JedisPooled("localhost", 6379);
+    public JedisPooled jedisPooled(@Value("${spring.redis.host}") String host, @Value("${spring.redis.port}") Integer port, @Value("${spring.redis.user}") String user, @Value("${spring.redis.password}") String password) {
+        return new JedisPooled(host,port, user,password);
     }
 
     @Bean
