@@ -69,8 +69,7 @@ pipeline {
                         docker rm -f llmservice || true
                         echo "컨테이너 실행 시작"
                         docker run -d --restart on-failure --network host --name llmservice\
-                        --env-file src/main/resources/.env\
-                        -p 8080:8080 ${IMAGE_NAME}:latest
+                        --env-file src/main/resources/.env ${IMAGE_NAME}:latest
                     '''
                 }
             }
