@@ -2,8 +2,8 @@ spring:
   application:
     name: llm-service
   profiles:
-#    active: dev
-    active: prod
+    active: dev
+#    active: prod
   devtools:
     restart:
       enabled: true
@@ -50,5 +50,10 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-#      defaultZone: ${EUREKA_SERVER_URL}
-        defaultZone: http://172.16.211.57:19090/eureka/
+      defaultZone: ${EUREKA_SERVER_URL}
+#      defaultZone: http://172.16.211.57:19090/eureka/
+
+      #log
+logging:
+  level:
+    org.springframework.security: DEBUG
