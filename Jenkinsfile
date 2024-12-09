@@ -51,14 +51,14 @@ pipeline {
         stage('Docker Image Deploy') {
             steps {
                 // jenkins config에서 설정한 SSH password를 사용하여 원격 호스트에 접속
-                sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+                sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: """
                     docker rm -f ${IMAGE_TAG}
                     docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
                     docker run --name ${IMAGE_TAG} -d --network host --restart on-failure \
                                   --env ACTIVE_PROFILE=${ACTIVE_PROFILE}\
                                   --env CONFIG_SERVER_URL=${CONFIG_SERVER_URL}\
                                   ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker image prune -a -f''', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                    docker image prune -a -f""", execTimeout: 120000,flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
             }
         }
     }
