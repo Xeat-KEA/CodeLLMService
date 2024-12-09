@@ -7,6 +7,10 @@ pipeline {
     environment {
         IMAGE_NAME = "hurraypersimmon/codingtext"  // Docker Hub ID와 리포지토리 이름
         IMAGE_TAG = "codellmservice"
+        TARGET_HOST = "s119@172.16.211.119"
+        SSH_CREDENTIALS = "jenkins_private_key"
+        ACTIVE_PROFILE = "prod"
+        CONFIG_SERVER_URL = "172.16.211.110:9000"
     }
 
     stages {
@@ -15,17 +19,15 @@ pipeline {
                 git branch: 'release/CT-184',
                 credentialsId: 'GitHub',
                 url: 'https://github.com/Xeat-KEA/CodeLLMService.git'
-
             }
         }
 
         stage('Build Gradle Project') {
             steps {
-                // Gradle 실행 권한 부여 및 빌드 실행
                 sh '''
                     echo 'gradlew 빌드 시작'
                     chmod +x ./gradlew
-                    ./gradlew clean build -Dspring.profiles.active=prod
+                    ./gradlew clean build 
                 '''
             }
         }
@@ -46,17 +48,16 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Docker Image Deploy') {
             steps {
-                script {
-                    sh '''
-                        echo "기존 컨테이너 종료"
-                        docker rm -f llmservice || true
-                        echo "컨테이너 실행 시작"
-                        docker run -d --restart on-failure --network host --name llmservice\
-                        --env-file src/main/resources/.env ${IMAGE_NAME}:${IMAGE_TAG}
-                    '''
-                }
+                sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+                    docker rm -f ${IMAGE_TAG} || true
+                    docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
+                    docker run --name compileservice -d --network host --restart on-failure \
+                                  --env ACTIVE_PROFILE=${ACTIVE_PROFILE}\
+                                  --env CONFIG_SERVER_URL=${CONFIG_SERVER_URL}\
+                                  ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker image prune -a -f''', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
             }
         }
     }
