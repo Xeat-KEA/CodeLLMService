@@ -7,7 +7,6 @@ build/
 
 ### Ignore Gradle GUI config ###
 .env*
-.yml*
 
 ### STS ###
 .apt_generated
