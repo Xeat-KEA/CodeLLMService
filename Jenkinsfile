@@ -52,7 +52,7 @@ pipeline {
         stage('Docker Image Deploy') {
             steps {
                 // jenkins configure에서 SSH 설정을 통해 접속
-                sshPublisher(publishers: [sshPublisherDesc(configName: ${SERVER_NAME}, transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+                sshPublisher(publishers: [sshPublisherDesc(configName: '${SERVER_NAME}', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
                     docker rm -f ${IMAGE_TAG} || true
                     docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
                     docker run --name ${IMAGE_TAG} -d --network host --restart on-failure \
