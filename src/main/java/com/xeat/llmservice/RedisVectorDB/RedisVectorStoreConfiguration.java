@@ -35,8 +35,8 @@ public class RedisVectorStoreConfiguration {
     }
 
     @Bean
-    public JedisPooled jedisPooled(@Value("${spring.data.redis.host}") String host, @Value("${spring.data.redis.port}") Integer port, @Value("${spring.data.redis.user}") String user, @Value("${spring.data.redis.password}") String password) {
-        return new JedisPooled(host, port, user, password);
+    public JedisPooled jedisPooled() {
+        return new JedisPooled("localhost", 6379);
     }
 
     @Bean
@@ -49,8 +49,8 @@ public class RedisVectorStoreConfiguration {
     }
 
     @Bean
-    public RedisVectorStore redisVectorStore(@Value("${spring.ai.openai.base-url}") String baseUrl, @Value("${spring.ai.openai.api-key}") String apiKey,@Value("${spring.data.redis.host}") String host, @Value("${spring.data.redis.port}") Integer port, @Value("${spring.data.redis.user}") String user, @Value("${spring.data.redis.password}") String password) {
-        return new RedisVectorStore(redisVectorStoreConfig(), embeddingModel(baseUrl, apiKey), jedisPooled(host, port, user, password), false);
+    public RedisVectorStore redisVectorStore(@Value("${spring.ai.openai.base-url}") String baseUrl, @Value("${spring.ai.openai.api-key}") String apiKey) {
+        return new RedisVectorStore(redisVectorStoreConfig(), embeddingModel(baseUrl, apiKey), jedisPooled(), false);
     }
 
     @Bean

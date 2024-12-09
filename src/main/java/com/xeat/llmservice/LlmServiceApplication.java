@@ -26,10 +26,10 @@ public class LlmServiceApplication {
 		SpringApplication.run(LlmServiceApplication.class, args);
 	}
 
-//	@Bean
-//	public LocaleResolver localeResolver() {
-//		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-//		localeResolver.setDefaultLocale(Locale.KOREA);
-//		return localeResolver;
-//	}
+	@Bean
+	public LocaleResolver localeResolver() {
+		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
+		localeResolver.setDefaultLocale(Locale.KOREA);
+		return localeResolver;
+	}
 }
