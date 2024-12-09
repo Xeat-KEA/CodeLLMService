@@ -11,6 +11,13 @@ spring:
     password: ${MYSQL_PASSWORD_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     name: ${MYSQL_NAME_PROD}
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
 #  kafka:
 #    bootstrap-servers: localhost:9092
 #    consumer:
