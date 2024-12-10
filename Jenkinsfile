@@ -56,7 +56,8 @@ pipeline {
                     docker run --name codellmservice -d --network host --restart on-failure\
                                 --env ACTIVE_PROFILE=prod\
                                 --env CONFIG_SERVER_URL=172.16.211.110:9000\
-                                hurraypersimmon/codingtext:codellmservice
+                                hurraypersimmon/codingtext:codellmservice \\
+                                java -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0 -jar /app.jar
 //                    docker rm -f ${IMAGE_TAG}
 //                    docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
 //                    docker run --name ${IMAGE_TAG} -d --network host --restart on-failure \
