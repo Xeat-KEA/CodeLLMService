@@ -161,7 +161,7 @@ public class LLMResponseDTO {
         private String question;
         @Lob
         private String answer;
-        private Integer chatHistoryId;
+        private Long chatHistoryId;
 
         public static ChatResponse of(LLMHistoryEntity llmHistoryEntity){
             return ChatResponse.builder()
