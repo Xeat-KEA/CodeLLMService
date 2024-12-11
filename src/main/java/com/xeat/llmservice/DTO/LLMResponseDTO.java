@@ -3,13 +3,16 @@ package com.xeat.llmservice.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xeat.llmservice.Entity.LLMHistoryEntity;
 import com.xeat.llmservice.Global.Enum.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -142,6 +145,55 @@ public class LLMResponseDTO {
             return new CodeQuestionClientResponse(answer);
         }
 
+    }
+
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ChatResponse {
+        @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
+        @Lob
+        private String question;
+        @Lob
+        private String answer;
+        private Integer chatHistoryId;
+
+        public static ChatResponse of(LLMHistoryEntity llmHistoryEntity){
+            return ChatResponse.builder()
+                    .question(llmHistoryEntity.getQuestion())
+                    .answer(llmHistoryEntity.getAnswer())
+                    .chatHistoryId(llmHistoryEntity.getChatHistoryId())
+                    .build();
+        }
+    }
+
+
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Schema(name = "CodeGenerateClientResponse", description = "코딩테스트 생성 클라이언트 응답", title = "CodeGenerateClientResponse [코딩테스트 생성 클라이언트 응답]")
+    public static class ChatResponseList {
+        List<ChatResponse> chatResponseList;
+        Integer totalPage;
+        Long totalElements;
+        Integer listSize;
+        Boolean firstPage;
+        Boolean lastPage;
+
+        public static ChatResponseList toChatResponseList(Page<LLMHistoryEntity> chatPage, List<ChatResponse> chatResponseList){
+            return ChatResponseList.builder()
+                    .chatResponseList(chatResponseList)
+                    .totalPage(chatPage.getTotalPages())
+                    .totalElements(chatPage.getTotalElements())
+                    .listSize(chatResponseList.size())
+                    .firstPage(chatPage.isFirst())
+                    .lastPage(chatPage.isLast())
+                    .build();
+        }
     }
 
 

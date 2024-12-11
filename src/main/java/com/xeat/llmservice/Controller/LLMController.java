@@ -20,10 +20,32 @@ public class LLMController {
     public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(@RequestBody LLMRequestDTO.codeGeneratingInfo request) {
         return llmService.codeGenerator(request);
     }
-
-    @PostMapping("/chat")
-    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(@RequestHeader("UserId") String userId,
+    @Operation(summary = "코딩테스트 (정답 제공) 질의 응답 API", description = "코딩테스트 질문에 대한 정답을 포함한 답변을 제공하는 API")
+    @PostMapping("/chat-answer")
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(@RequestHeader("UserId") String userId,
                                                @RequestBody LLMRequestDTO.chatMessage request) {
-        return llmService.chat(userId, request);
+        return llmService.chatIncludeAnswer(userId, request);
     }
+
+    @Operation(summary = "코딩테스트 (정답 미제공) 질의 응답 API", description = "코딩테스트 질문에 대한 정답을 포함하지 않은 답변을 제공하는 API")
+    @PostMapping("/chat-guidance")
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(@RequestHeader("UserId") String userId,
+                                                                          @RequestBody LLMRequestDTO.chatMessage request) {
+        return llmService.chatJustGuidance(userId, request);
+    }
+
+    @Operation(summary = "코딩테스트 최근 채팅 조회 API", description = "코딩테스트 가장 최근 채팅 및 채팅 정보를 조회하는 API")
+    @GetMapping("/{codeHistoryId}")
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(@PathVariable Integer codeHistoryId,
+                                                                   @RequestHeader("UserId") String userId) {
+        return llmService.chatHistory(userId, codeHistoryId);
+    }
+
+    @Operation(summary = "코딩테스트 채팅 페이지네이션 조회 API", description = "코딩테스트 채팅을 조회하는 API")
+    @GetMapping("/history/{codeHistoryId}")
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(@PathVariable Integer codeHistoryId, @RequestParam("oage") Integer page,
+                                                                   @RequestHeader("UserId") String userId) {
+        return llmService.chatPagedHistory(userId,codeHistoryId, page);
+    }
+
 }

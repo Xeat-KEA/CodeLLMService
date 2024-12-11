@@ -13,7 +13,12 @@ import reactor.core.publisher.Mono;
 public interface LLMService {
 
     ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request);
-    ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(String userId, LLMRequestDTO.chatMessage request);
+    ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request);
+
+    ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request);
 
 
+    ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Integer codeHistoryId);
+
+    ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Integer codeHistoryId, Integer page);
 }

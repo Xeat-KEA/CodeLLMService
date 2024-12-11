@@ -25,6 +25,10 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -166,9 +170,9 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(String userId, LLMRequestDTO.chatMessage request) {
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request) {
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
-                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
+                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
                 .build()
                 .prompt()
                 .user(request.getChatMessage())
@@ -236,6 +240,82 @@ public class LLMServiceImpl implements LLMService {
         //c. 기존 사용자 중 한 문제에 관한 대화기록이 있는 경우 : 해당 문제에 대한 대화기록 가져와서 OpenAI에 전달.
 
 
+    }
+
+    @Override
+    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request) {
+        ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
+                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
+                .build()
+                .prompt()
+                .user(request.getChatMessage())
+                .call()
+                .chatResponse();
+
+
+        if (!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())) {
+            //TODO : feignClient로 codeHistoryId 받아오기
+            LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
+                    .userId(userId)
+                    .codeHistoryId(1)
+                    .build()));
+
+            LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
+                    .chatHistoryId(1)
+                    .question(request.getChatMessage())
+                    .answer(chatResponse.getResult().getOutput().getContent())
+                    .llmEntity(llmEntity)
+                    .build()));
+
+            return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+
+        }
+
+        LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
+                .chatHistoryId(request.getCodeHistoryId())
+                .question(request.getChatMessage())
+                .answer(chatResponse.getResult().getOutput().getContent())
+                .llmEntity(llmRepository.findByCodeHistoryId(request.getCodeHistoryId()))
+                .build()));
+
+
+        return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+    }
+
+    @Override
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Integer codeHistoryId) {
+        if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
+            return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
+        }
+
+        if(!llmRepository.existsByUserId(userId)){
+            return ResponseEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
+        }
+
+        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(0);
+        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
+                .map(LLMResponseDTO.ChatResponse::of)
+                .toList();
+        return ResponseEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+    }
+
+    @Override
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Integer codeHistoryId, Integer page) {
+        if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
+            return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
+        }
+
+        if(!llmRepository.existsByUserId(userId)){
+            return ResponseEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
+        }
+
+        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(page);
+        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
+                .map(LLMResponseDTO.ChatResponse::of)
+                .toList();
+        return ResponseEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
     private boolean banQuestionChecker(String chatMessage) {
