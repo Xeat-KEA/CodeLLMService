@@ -52,25 +52,21 @@ pipeline {
             steps {
                 // jenkins config에서 설정한 SSH password를 사용하여 원격 호스트에 접속
                 sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
-                    docker rm -f codellmservice  
+                    docker rm -f codellmservice
+                    docker system prune -a -f  
                     docker run --name codellmservice -d --network host --restart on-failure\
                                 --env ACTIVE_PROFILE=prod\
                                 --env CONFIG_SERVER_URL=172.16.211.110:9000\
-                                hurraypersimmon/codingtext:codellmservice \\
+                                hurraypersimmon/codingtext:codellmservice\\
                                 java -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0 -jar /app.jar
-//                    docker rm -f ${IMAGE_TAG}
-//                    docker image rm ${IMAGE_NAME}:${IMAGE_TAG} -f
-//                    docker run --name ${IMAGE_TAG} -d --network host --restart on-failure \
-//                                  --env ACTIVE_PROFILE=${ACTIVE_PROFILE}\
-//                                  --env CONFIG_SERVER_URL=${CONFIG_SERVER_URL}\
-//                                  ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker system prune -a -f''', execTimeout: 120000,flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                    ''', execTimeout: 120000,flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
             }
         }
     }
 
     post {
         always {
+            sh "docker system prune -a -f"
             cleanWs()  // 빌드 후 작업 공간 정리
         }
     }
