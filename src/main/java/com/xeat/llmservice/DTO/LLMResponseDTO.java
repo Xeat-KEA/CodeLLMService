@@ -118,18 +118,21 @@ public class LLMResponseDTO {
     public static class CodeGenerateClientResponse extends CodeGenerateResponse{
         @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
         private Integer codeId;
+        @Schema(name = "codeHistoryId", description = "코딩 테스트 히스토리 ID", example = "1")
+        private Integer codeHistoryId;
 
-        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Integer codeId) {
+        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Integer codeId, Integer codeHistoryId) {
             super(title, algorithm, content, difficulty);
             this.codeId = codeId;
+            this.codeHistoryId = codeHistoryId;
         }
 
-        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Integer codeId){
+        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Integer codeId, Integer codeHistoryId){
             return new CodeGenerateClientResponse(codeGenerateResponse.getTitle(),
                     codeGenerateResponse.getAlgorithm(),
                     codeGenerateResponse.getContent(),
                     codeGenerateResponse.getDifficulty(),
-                    codeId);
+                    codeId, codeHistoryId);
         }
     }
 

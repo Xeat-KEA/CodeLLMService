@@ -1,5 +1,7 @@
 package com.xeat.llmservice.Service;
 
+import com.xeat.llmservice.Client.CodeBankClient;
+import com.xeat.llmservice.DTO.ClientResponseDTO;
 import com.xeat.llmservice.DTO.LLMRequestDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
 import com.xeat.llmservice.Entity.LLMEntity;
@@ -17,23 +19,19 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 
 @Service
@@ -46,6 +44,7 @@ public class LLMServiceImpl implements LLMService {
     private final OpenAiChatModel openAiChatModel;
     private final VectorStore vectorStore;
     private final ChatClient chatClient;
+    private final CodeBankClient codeBankClient;
 
 
 
@@ -159,14 +158,14 @@ public class LLMServiceImpl implements LLMService {
                         .build());
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
-        //TODO : feign client로 code쪽 문제 정보 보내서 저장.
         LLMResponseDTO.CodeGenerateResponse sendToCodeFeignClient = LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent());
+        ClientResponseDTO.CodeBankResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient).getData();
 
         //로직에 의거한 codeId 생성
         Integer codeId = 1;
 
         //client는 받아온 codeId, 제목, 본문 response로 보내기.
-        return ResponseEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, codeId));
+        return ResponseEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, data.getCodeId(), data.getCodeHistoryId()));
     }
 
     @Override

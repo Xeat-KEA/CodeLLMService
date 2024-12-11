@@ -4,9 +4,6 @@ import com.xeat.llmservice.Entity.LLMEntity;
 import com.xeat.llmservice.Entity.LLMHistoryEntity;
 import com.xeat.llmservice.Global.Enum.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -80,10 +77,5 @@ public class LLMRequestDTO {
         }
 
     }
-
-
-
-
-
 
 }
