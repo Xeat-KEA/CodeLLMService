@@ -43,7 +43,7 @@ public class LLMController {
 
     @Operation(summary = "코딩테스트 채팅 페이지네이션 조회 API", description = "코딩테스트 채팅을 조회하는 API")
     @GetMapping("/history/{codeHistoryId}")
-    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(@PathVariable Integer codeHistoryId, @RequestParam("oage") Integer page,
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(@PathVariable Integer codeHistoryId, @RequestParam("page") Integer page,
                                                                    @RequestHeader("UserId") String userId) {
         return llmService.chatPagedHistory(userId,codeHistoryId, page);
     }
