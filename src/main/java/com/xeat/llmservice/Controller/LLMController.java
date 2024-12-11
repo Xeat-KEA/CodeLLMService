@@ -17,8 +17,9 @@ public class LLMController {
     private final LLMService llmService;
     @Operation(summary = "코딩테스트 문제 생성 API", description = "난이도(1~5), 알고리즘, 추가 사항을 기반으로 코딩 테스트를 생성하는 API")
     @PostMapping("/code-generating")
-    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(@RequestBody LLMRequestDTO.codeGeneratingInfo request) {
-        return llmService.codeGenerator(request);
+    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(@RequestHeader("UserId") String userId,
+                                                                                   @RequestBody LLMRequestDTO.codeGeneratingInfo request) {
+        return llmService.codeGenerator(userId, request);
     }
     @Operation(summary = "코딩테스트 (정답 제공) 질의 응답 API", description = "코딩테스트 질문에 대한 정답을 포함한 답변을 제공하는 API")
     @PostMapping("/chat-answer")

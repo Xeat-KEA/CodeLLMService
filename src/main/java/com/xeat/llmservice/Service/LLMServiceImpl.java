@@ -49,7 +49,7 @@ public class LLMServiceImpl implements LLMService {
 
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
+    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(String userId, LLMRequestDTO.codeGeneratingInfo request) {
         String etc = request.getEtc() != null ? request.getEtc() : "null";
         UserMessage userMessage1 = new UserMessage("난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
         String jsonSchema = """
@@ -159,7 +159,7 @@ public class LLMServiceImpl implements LLMService {
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
         LLMResponseDTO.CodeGenerateResponse sendToCodeFeignClient = LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent());
-        ClientResponseDTO.CodeBankResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient).getData();
+        ClientResponseDTO.CodeBankResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient, userId).getData();
 
         //로직에 의거한 codeId 생성
         Integer codeId = 1;
