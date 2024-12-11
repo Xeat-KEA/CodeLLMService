@@ -2,6 +2,7 @@ package com.xeat.llmservice.RedisVectorDB;
 
 import lombok.AllArgsConstructor;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.RedisVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class RedisBanCacheInitializer {
 
-    private final VectorStore vectorStore;
+    private final RedisVectorStore redisVectorStore;
     private final List<String> BAN_QUESTIONS = List.of(
             "코딩 테스트 만들어줘",
             "코딩 테스트 만들어 주세요.",
@@ -34,6 +35,6 @@ public class RedisBanCacheInitializer {
         List<Document> documents = BAN_QUESTIONS.stream()
                 .map(banQuestion -> new Document(banQuestion, Map.of("type", "banGeneratingQuestion")))
                 .toList();
-        vectorStore.add(documents);
+        redisVectorStore.doAdd(documents);
     }
 }

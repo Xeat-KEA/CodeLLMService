@@ -33,7 +33,8 @@ public class RedisVectorStoreConfiguration {
                 .withVectorAlgorithm(RedisVectorStore.Algorithm.HSNW)
                 .withMetadataFields(
                         new RedisVectorStore.MetadataField("type", Schema.FieldType.TEXT),
-                        new RedisVectorStore.MetadataField("userId", Schema.FieldType.TEXT)
+                        new RedisVectorStore.MetadataField("userId", Schema.FieldType.TEXT),
+                        new RedisVectorStore.MetadataField("codeHistoryId", Schema.FieldType.NUMERIC)
                 )
                 .build();
     }
@@ -57,8 +58,4 @@ public class RedisVectorStoreConfiguration {
         return new RedisVectorStore(redisVectorStoreConfig(), embeddingModel(baseUrl, apiKey), jedisPooled(), false);
     }
 
-    @Bean
-    public VectorStore vectorStore(RedisVectorStore redisVectorStore) {
-        return redisVectorStore;
-    }
 }
