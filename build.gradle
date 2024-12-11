@@ -46,8 +46,8 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	implementation 'org.springframework.cloud:spring-cloud-config-client'
 	implementation 'com.netflix.eureka:eureka-client-jersey3'
+	implementation 'org.springframework.cloud:spring-cloud-config-client'
 
 
 	// open-ai 라이브러리 의존성 추가
