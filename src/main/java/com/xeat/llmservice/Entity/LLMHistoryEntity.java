@@ -18,7 +18,7 @@ public class LLMHistoryEntity {
     // 각 채팅방 별로 대화 내용을 저장하는 개념으로 생각하면 된다.
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    private Integer chatHistoryId;
+    private Long chatHistoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatId")

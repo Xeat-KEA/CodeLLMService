@@ -20,7 +20,7 @@ public class LLMRequestDTO {
         @Schema(name = "chatMessage", description = "채팅 메시지", example = "파이썬에서 출력을 담당하는 함수가 뭐지?")
         private String chatMessage;
         @Schema(name = "codeHistoryId", description = "코드 히스토리 ID", example = "1")
-        private Integer codeHistoryId;
+        private Long codeHistoryId;
         @Schema(name = "codeLanguage", description = "코드 언어", example = "PYTHON")
         private String codeLanguage;
         @Schema(name = "isNotReqCodeGen", description = "코드 생성을 원하는 질문인지 확인", example = "false")
@@ -47,7 +47,7 @@ public class LLMRequestDTO {
     @Getter
     public static class LLMDTO {
         private String userId;
-        private Integer codeHistoryId;
+        private Long codeHistoryId;
 
         public static LLMEntity toEntity(LLMDTO llmDTO) {
             return LLMEntity.builder()
@@ -62,7 +62,7 @@ public class LLMRequestDTO {
     @NoArgsConstructor
     @Getter
     public static class LLMHistoryDTO {
-        private Integer chatHistoryId;
+        private Long chatHistoryId;
         private LLMEntity llmEntity;
         private String question;
         private String answer;

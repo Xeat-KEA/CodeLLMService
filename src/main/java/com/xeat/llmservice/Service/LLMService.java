@@ -18,7 +18,7 @@ public interface LLMService {
     ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request);
 
 
-    ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Integer codeHistoryId);
+    ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Long codeHistoryId);
 
-    ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Integer codeHistoryId, Integer page);
+    ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Long codeHistoryId, Integer page);
 }

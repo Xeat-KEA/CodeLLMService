@@ -184,11 +184,11 @@ public class LLMServiceImpl implements LLMService {
             //TODO : feignClient로 codeHistoryId 받아오기
             LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
                     .userId(userId)
-                    .codeHistoryId(1)
+                    .codeHistoryId(1L)
                     .build()));
 
             LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
-                    .chatHistoryId(1)
+                    .chatHistoryId(1L)
                     .question(request.getChatMessage())
                     .answer(chatResponse.getResult().getOutput().getContent())
                     .llmEntity(llmEntity)
@@ -257,11 +257,11 @@ public class LLMServiceImpl implements LLMService {
             //TODO : feignClient로 codeHistoryId 받아오기
             LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
                     .userId(userId)
-                    .codeHistoryId(1)
+                    .codeHistoryId(1L)
                     .build()));
 
             LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
-                    .chatHistoryId(1)
+                    .chatHistoryId(1L)
                     .question(request.getChatMessage())
                     .answer(chatResponse.getResult().getOutput().getContent())
                     .llmEntity(llmEntity)
@@ -283,7 +283,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Integer codeHistoryId) {
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Long codeHistoryId) {
         if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
             return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
         }
@@ -301,7 +301,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Integer codeHistoryId, Integer page) {
+    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Long codeHistoryId, Integer page) {
         if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
             return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
         }

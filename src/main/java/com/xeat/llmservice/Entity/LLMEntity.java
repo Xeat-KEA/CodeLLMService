@@ -23,7 +23,7 @@ public class LLMEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Integer chatId;             // 채팅 ID
     // 채팅 아이디는 사용자 코딩 테스트 내역과 동일하다고 생각하면 된다.
-    private Integer codeHistoryId;      // 코딩 테스트 내역 ID
+    private Long codeHistoryId;      // 코딩 테스트 내역 ID
     private String userId;             // 사용자 ID
 //    private Integer codeId;             // 코딩 테스트 문제 ID, 사용자 코딩 테스트 내영으로 불러올 수 있음.
 }
