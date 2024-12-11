@@ -117,17 +117,17 @@ public class LLMResponseDTO {
     @Schema(name = "CodeGenerateClientResponse", description = "코딩테스트 생성 클라이언트 응답", title = "CodeGenerateClientResponse [코딩테스트 생성 클라이언트 응답]")
     public static class CodeGenerateClientResponse extends CodeGenerateResponse{
         @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
-        private Integer codeId;
+        private Long codeId;
         @Schema(name = "codeHistoryId", description = "코딩 테스트 히스토리 ID", example = "1")
-        private Integer codeHistoryId;
+        private Long codeHistoryId;
 
-        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Integer codeId, Integer codeHistoryId) {
+        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Long codeId, Long codeHistoryId) {
             super(title, algorithm, content, difficulty);
             this.codeId = codeId;
             this.codeHistoryId = codeHistoryId;
         }
 
-        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Integer codeId, Integer codeHistoryId){
+        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Long codeId, Long codeHistoryId){
             return new CodeGenerateClientResponse(codeGenerateResponse.getTitle(),
                     codeGenerateResponse.getAlgorithm(),
                     codeGenerateResponse.getContent(),

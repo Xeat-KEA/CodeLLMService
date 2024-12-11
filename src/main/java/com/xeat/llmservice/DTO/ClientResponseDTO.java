@@ -11,8 +11,8 @@ public class ClientResponseDTO {
     @NoArgsConstructor
     @Getter
     public static class CodeBankResponseDTO {
-        private Integer codeHistoryId;
-        private Integer codeId;
+        private Long codeHistoryId;
+        private Long codeId;
 
         public static CodeBankResponseDTO toEntity(CodeBankResponseDTO codeBankResponseDTO) {
             return CodeBankResponseDTO.builder()
