@@ -6,7 +6,7 @@ import com.xeat.llmservice.DTO.LLMRequestDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
 import com.xeat.llmservice.Entity.LLMEntity;
 import com.xeat.llmservice.Entity.LLMHistoryEntity;
-import com.xeat.llmservice.Global.ResponseEntity;
+import com.xeat.llmservice.Global.ResponseCustomEntity;
 import com.xeat.llmservice.Repository.LLMHistoryRepository;
 import com.xeat.llmservice.Repository.LLMRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,7 +50,7 @@ public class LLMServiceImpl implements LLMService {
 
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(String userId, LLMRequestDTO.codeGeneratingInfo request) {
+    public ResponseCustomEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(String userId, LLMRequestDTO.codeGeneratingInfo request) {
         String etc = request.getEtc() != null ? request.getEtc() : "null";
         UserMessage userMessage1 = new UserMessage("난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
         String jsonSchema = """
@@ -159,18 +160,19 @@ public class LLMServiceImpl implements LLMService {
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
         LLMResponseDTO.CodeGenerateResponse sendToCodeFeignClient = LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent());
-        ClientResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient, userId).getData();
-        System.out.println("data : " + data);
+        ResponseEntity<ClientResponseDTO> response = codeBankClient.createCodeId(sendToCodeFeignClient, userId);
 
+        ClientResponseDTO data = response.getBody();
+        System.out.println("data : " + data);
         //로직에 의거한 codeId 생성
         Integer codeId = 1;
 
         //client는 받아온 codeId, 제목, 본문 response로 보내기.
-        return ResponseEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, data.getCodeId(), data.getCodeHistoryId()));
+        return ResponseCustomEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, data.getCodeId(), data.getCodeHistoryId()));
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request) {
+    public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request) {
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
                 .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
                 .build()
@@ -194,7 +196,7 @@ public class LLMServiceImpl implements LLMService {
                     .llmEntity(llmEntity)
                     .build()));
 
-            return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+            return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
 
         }
         //코딩테스트 문제를 만들어달라는 요청을 받을 경우, 유사도 확인하여, 생성하지 않도록 수정
@@ -215,7 +217,7 @@ public class LLMServiceImpl implements LLMService {
                 .build()));
 
 
-        return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+        return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
 
 
         //1. 사용자의 메세지 받기
@@ -243,7 +245,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request) {
+    public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request) {
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
                 .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
                 .build()
@@ -267,7 +269,7 @@ public class LLMServiceImpl implements LLMService {
                     .llmEntity(llmEntity)
                     .build()));
 
-            return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+            return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
 
         }
 
@@ -279,17 +281,17 @@ public class LLMServiceImpl implements LLMService {
                 .build()));
 
 
-        return ResponseEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+        return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Long codeHistoryId) {
+    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Long codeHistoryId) {
         if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
-            return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
+            return ResponseCustomEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
         if(!llmRepository.existsByUserId(userId)){
-            return ResponseEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
+            return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
         Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(0);
@@ -297,17 +299,17 @@ public class LLMServiceImpl implements LLMService {
         List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                 .map(LLMResponseDTO.ChatResponse::of)
                 .toList();
-        return ResponseEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
     @Override
-    public ResponseEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Long codeHistoryId, Integer page) {
+    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(String userId, Long codeHistoryId, Integer page) {
         if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
-            return ResponseEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
+            return ResponseCustomEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
         if(!llmRepository.existsByUserId(userId)){
-            return ResponseEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
+            return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
         Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(page);
@@ -315,7 +317,7 @@ public class LLMServiceImpl implements LLMService {
         List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                 .map(LLMResponseDTO.ChatResponse::of)
                 .toList();
-        return ResponseEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
     private boolean banQuestionChecker(String chatMessage) {

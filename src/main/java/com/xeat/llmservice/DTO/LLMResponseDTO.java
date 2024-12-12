@@ -155,12 +155,15 @@ public class LLMResponseDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
+    @Schema(name = "ChatResponse", description = "채팅 응답", title = "ChatResponse [채팅 응답]")
     public static class ChatResponse {
-        @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
         @Lob
+        @Schema(name = "question", description = "채팅 질문", example = "1")
         private String question;
         @Lob
+        @Schema(name = "answer", description = "채팅 답변", example = "1")
         private String answer;
+        @Schema(name = "chatHistoryId", description = "채팅 히스토리 ID", example = "1")
         private Long chatHistoryId;
 
         public static ChatResponse of(LLMHistoryEntity llmHistoryEntity){
@@ -178,13 +181,19 @@ public class LLMResponseDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    @Schema(name = "CodeGenerateClientResponse", description = "코딩테스트 생성 클라이언트 응답", title = "CodeGenerateClientResponse [코딩테스트 생성 클라이언트 응답]")
+    @Schema(name = "ChatResponseList", description = "채팅 응답 리스트", title = "ChatResponseList [채팅 응답 리스트]")
     public static class ChatResponseList {
+        @Schema(name = "chatResponseList", description = "채팅 응답 리스트")
         List<ChatResponse> chatResponseList;
+        @Schema(name = "totalPage", description = "총 페이지 수", example = "1")
         Integer totalPage;
+        @Schema(name = "totalElements", description = "총 요소 수", example = "1")
         Long totalElements;
+        @Schema(name = "listSize", description = "리스트 크기", example = "1")
         Integer listSize;
+        @Schema(name = "firstPage", description = "첫 페이지 여부", example = "true")
         Boolean firstPage;
+        @Schema(name = "lastPage", description = "마지막 페이지 여부", example = "false")
         Boolean lastPage;
 
         public static ChatResponseList toChatResponseList(Page<LLMHistoryEntity> chatPage, List<ChatResponse> chatResponseList){
