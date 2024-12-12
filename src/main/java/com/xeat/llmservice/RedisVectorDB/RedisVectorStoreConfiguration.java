@@ -15,7 +15,10 @@ import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.search.Document;
 import redis.clients.jedis.search.Schema;
+
+import java.util.List;
 
 @Configuration
 @AllArgsConstructor
@@ -27,6 +30,7 @@ public class RedisVectorStoreConfiguration {
     @Bean
     public RedisVectorStore.RedisVectorStoreConfig redisVectorStoreConfig() {
         return RedisVectorStore.RedisVectorStoreConfig.builder()
+                .withIndexName("vector-store")
                 .withPrefix("vector:")
                 .withContentFieldName("content")
                 .withEmbeddingFieldName("embedding")
@@ -55,7 +59,6 @@ public class RedisVectorStoreConfiguration {
 
     @Bean
     public RedisVectorStore redisVectorStore(@Value("${spring.ai.openai.base-url}") String baseUrl, @Value("${spring.ai.openai.api-key}") String apiKey) {
-        return new RedisVectorStore(redisVectorStoreConfig(), embeddingModel(baseUrl, apiKey), jedisPooled(), false);
+        return new RedisVectorStore(redisVectorStoreConfig(), embeddingModel(baseUrl, apiKey), jedisPooled(), true);
     }
-
 }

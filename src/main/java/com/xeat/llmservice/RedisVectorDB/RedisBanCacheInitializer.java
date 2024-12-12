@@ -24,13 +24,13 @@ public class RedisBanCacheInitializer {
     );
     public void init(){
 
-//        String firstQuestion = BAN_QUESTIONS.get(0);
-//        List<Document> existingDocs = vectorStore.similaritySearch(SearchRequest.query(firstQuestion));
-//
-//        if (!existingDocs.isEmpty()) {
-//            System.out.println("Ban cache already initialized. Skipping initialization.");
-//            return;
-//        }
+        String firstQuestion = BAN_QUESTIONS.get(0);
+        List<Document> existingDocs = redisVectorStore.doSimilaritySearch(SearchRequest.query(firstQuestion));
+
+        if (!existingDocs.isEmpty()) {
+            System.out.println("Ban cache already initialized. Skipping initialization.");
+            return;
+        }
 
         List<Document> documents = BAN_QUESTIONS.stream()
                 .map(banQuestion -> new Document(banQuestion, Map.of("type", "banGeneratingQuestion")))
