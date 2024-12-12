@@ -40,14 +40,14 @@ public class LLMResponseDTO {
         @Schema(name = "testCases", description = "테스트 케이스 목록(front 필요 없을 확률이 높음.)")
         private List<TestCaseSpec> testCases;
 
-        // Client에서 사용할 응답 객체 생성자
-        @Builder
-        public CodeGenerateResponse(String title, String algorithm, String content, Difficulty difficulty) {
-            this.title = title;
-            this.algorithm = algorithm;
-            this.content = content;
-            this.difficulty = difficulty;
-        }
+//        // Client에서 사용할 응답 객체 생성자
+//        @Builder
+//        public CodeGenerateResponse(String title, String algorithm, String content, Difficulty difficulty) {
+//            this.title = title;
+//            this.algorithm = algorithm;
+//            this.content = content;
+//            this.difficulty = difficulty;
+//        }
 
         @Builder
         @Getter

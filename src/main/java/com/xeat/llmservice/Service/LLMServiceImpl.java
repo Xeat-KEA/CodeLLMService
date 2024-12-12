@@ -178,7 +178,6 @@ public class LLMServiceImpl implements LLMService {
                 .call()
                 .chatResponse();
 
-
         if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
             //codeHistoryId를 feignClient로 받아와야 할 수도 있음
             LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
