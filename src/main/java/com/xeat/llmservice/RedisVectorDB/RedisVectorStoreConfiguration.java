@@ -37,8 +37,7 @@ public class RedisVectorStoreConfiguration {
                 .withVectorAlgorithm(RedisVectorStore.Algorithm.HSNW)
                 .withMetadataFields(
                         new RedisVectorStore.MetadataField("type", Schema.FieldType.TEXT),
-                        new RedisVectorStore.MetadataField("userId", Schema.FieldType.TEXT),
-                        new RedisVectorStore.MetadataField("codeHistoryId", Schema.FieldType.NUMERIC)
+                        new RedisVectorStore.MetadataField("chatId", Schema.FieldType.NUMERIC)
                 )
                 .build();
     }
