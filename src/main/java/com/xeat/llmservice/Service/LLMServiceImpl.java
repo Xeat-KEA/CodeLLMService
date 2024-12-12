@@ -195,11 +195,10 @@ public class LLMServiceImpl implements LLMService {
             return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
 
         }
-        if(request.getIsNotReqCodeGen() && banQuestionChecker(request.getChatMessage())) {
+        if(request.getIsRequestCodeGen() && banQuestionChecker(request.getChatMessage())) {
             return ResponseCustomEntity.error(400, "코딩테스트 생성 요청은 금지되어 있습니다.", null);
         }
 
-        //TODO: chat message를 받아서 OpenAI에 전달하고, 그 결과를 반환하는 메소드 구현
         //feign client에서 코테 문제 정보 받아와서 Redis cache에 저장
 
 

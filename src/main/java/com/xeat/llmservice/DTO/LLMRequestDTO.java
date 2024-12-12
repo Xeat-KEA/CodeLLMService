@@ -23,8 +23,8 @@ public class LLMRequestDTO {
         private Long codeHistoryId;
         @Schema(name = "codeLanguage", description = "코드 언어", example = "PYTHON")
         private String codeLanguage;
-        @Schema(name = "isNotReqCodeGen", description = "코드 생성을 원하는 질문인지 확인", example = "false")
-        private Boolean isNotReqCodeGen;
+        @Schema(name = "isRequestCodeGen", description = "질문이 코드 생성 관련 질문인지 여부", example = "true(default)")
+        private Boolean isRequestCodeGen;
     }
 
     @Builder
