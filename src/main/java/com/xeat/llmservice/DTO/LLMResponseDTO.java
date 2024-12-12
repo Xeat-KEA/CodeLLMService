@@ -7,10 +7,7 @@ import com.xeat.llmservice.Entity.LLMHistoryEntity;
 import com.xeat.llmservice.Global.Enum.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Lob;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -114,26 +111,28 @@ public class LLMResponseDTO {
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     @Schema(name = "CodeGenerateClientResponse", description = "코딩테스트 생성 클라이언트 응답", title = "CodeGenerateClientResponse [코딩테스트 생성 클라이언트 응답]")
-    public static class CodeGenerateClientResponse extends CodeGenerateResponse{
+    public static class CodeGenerateClientResponse{
         @Schema(name = "codeId", description = "코딩 테스트 ID", example = "1")
         private Long codeId;
-        @Schema(name = "codeHistoryId", description = "코딩 테스트 히스토리 ID", example = "1")
-        private Long codeHistoryId;
 
-        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Long codeId, Long codeHistoryId) {
-            super(title, algorithm, content, difficulty);
-            this.codeId = codeId;
-            this.codeHistoryId = codeHistoryId;
-        }
-
-        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Long codeId, Long codeHistoryId){
-            return new CodeGenerateClientResponse(codeGenerateResponse.getTitle(),
-                    codeGenerateResponse.getAlgorithm(),
-                    codeGenerateResponse.getContent(),
-                    codeGenerateResponse.getDifficulty(),
-                    codeId, codeHistoryId);
-        }
+//        @Schema(name = "codeHistoryId", description = "코딩 테스트 히스토리 ID", example = "1")
+//        private Long codeHistoryId;
+//
+//        public CodeGenerateClientResponse (String title, String algorithm, String content, Difficulty difficulty, Long codeId, Long codeHistoryId) {
+//            super(title, algorithm, content, difficulty);
+//            this.codeId = codeId;
+//            this.codeHistoryId = codeHistoryId;
+//        }
+//
+//        public static CodeGenerateClientResponse of(CodeGenerateResponse codeGenerateResponse, Long codeId, Long codeHistoryId){
+//            return new CodeGenerateClientResponse(codeGenerateResponse.getTitle(),
+//                    codeGenerateResponse.getAlgorithm(),
+//                    codeGenerateResponse.getContent(),
+//                    codeGenerateResponse.getDifficulty(),
+//                    codeId, codeHistoryId);
+//        }
     }
 
     @Getter

@@ -35,18 +35,20 @@ public class LLMController {
         return llmService.chatJustGuidance(userId, request);
     }
 
-    @Operation(summary = "코딩테스트 최근 채팅 조회 API", description = "코딩테스트 가장 최근 채팅 및 채팅 정보를 조회하는 API")
-    @GetMapping("/{codeHistoryId}")
-    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatHistory(@PathVariable Long codeHistoryId,
-                                                                             @RequestHeader("UserId") String userId) {
-        return llmService.chatHistory(userId, codeHistoryId);
-    }
-
     @Operation(summary = "코딩테스트 채팅 페이지네이션 조회 API", description = "코딩테스트 채팅을 조회하는 API")
     @GetMapping("/history/{codeHistoryId}")
     public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatPagedHistory(@PathVariable Long codeHistoryId, @RequestParam("page") Integer page,
                                                                                   @RequestHeader("UserId") String userId) {
         return llmService.chatPagedHistory(userId,codeHistoryId, page);
     }
+
+//    @Operation(summary = "코딩테스트 최근 채팅 조회 API", description = "코딩테스트 가장 최근 채팅 및 채팅 정보를 조회하는 API")
+//    @GetMapping("/{codeHistoryId}")
+//    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatRecentHistory(@PathVariable Long codeHistoryId,
+//                                                                             @RequestHeader("UserId") String userId) {
+//        return llmService.chatRecentHistory(userId, codeHistoryId);
+//    }
+
+
 
 }

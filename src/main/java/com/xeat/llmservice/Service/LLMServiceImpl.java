@@ -163,12 +163,9 @@ public class LLMServiceImpl implements LLMService {
         ResponseEntity<ClientResponseDTO> response = codeBankClient.createCodeId(sendToCodeFeignClient, userId);
 
         ClientResponseDTO data = response.getBody();
-        System.out.println("data : " + data);
-        //로직에 의거한 codeId 생성
-        Integer codeId = 1;
-
-        //client는 받아온 codeId, 제목, 본문 response로 보내기.
-        return ResponseCustomEntity.success(LLMResponseDTO.CodeGenerateClientResponse.of(sendToCodeFeignClient, data.getCodeId(), data.getCodeHistoryId()));
+        return ResponseCustomEntity.success(LLMResponseDTO.CodeGenerateClientResponse.builder()
+                .codeId(data.getCodeId())
+                .build());
     }
 
     @Override
@@ -183,7 +180,7 @@ public class LLMServiceImpl implements LLMService {
 
 
         if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
-            //TODO : feignClient로 codeHistoryId 받아오기
+            //codeHistoryId를 feignClient로 받아와야 할 수도 있음
             LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
                     .userId(userId)
                     .codeHistoryId(1L)
@@ -256,7 +253,7 @@ public class LLMServiceImpl implements LLMService {
 
 
         if (!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())) {
-            //TODO : feignClient로 codeHistoryId 받아오기
+            //codeHistoryId를 feignClient로 받아와야 할 수도 있음
             LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
                     .userId(userId)
                     .codeHistoryId(1L)
@@ -282,24 +279,6 @@ public class LLMServiceImpl implements LLMService {
 
 
         return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
-    }
-
-    @Override
-    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatHistory(String userId, Long codeHistoryId) {
-        if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
-            return ResponseCustomEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
-        }
-
-        if(!llmRepository.existsByUserId(userId)){
-            return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
-        }
-
-        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(0);
-        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
-        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
-                .map(LLMResponseDTO.ChatResponse::of)
-                .toList();
-        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
     @Override
@@ -360,6 +339,24 @@ public class LLMServiceImpl implements LLMService {
         return List.of(userMessage, mostSimilarMessage, secondMostSimilarMessage);
     }
 }
+
+//    @Override
+//    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatRecentHistory(String userId, Long codeHistoryId) {
+//        if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
+//            return ResponseCustomEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
+//        }
+//
+//        if(!llmRepository.existsByUserId(userId)){
+//            return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
+//        }
+//
+//        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(0);
+//        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+//        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
+//                .map(LLMResponseDTO.ChatResponse::of)
+//                .toList();
+//        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+//    }
 
     //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeContentPropertiesDetail.createCodeContentPropertiesDetail;
 //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeGeneratorFunctionDetail.createCodeGeneratorFunctionDetail;
