@@ -159,7 +159,7 @@ public class LLMServiceImpl implements LLMService {
 
         ChatResponse chatResponse = this.openAiChatModel.call(prompt);
         LLMResponseDTO.CodeGenerateResponse sendToCodeFeignClient = LLMResponseDTO.CodeGenerateResponse.of(chatResponse.getResult().getOutput().getContent());
-        ClientResponseDTO.CodeBankResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient, userId).getData();
+        ClientResponseDTO data = codeBankClient.createCodeId(sendToCodeFeignClient, userId).getData();
         System.out.println("data : " + data);
 
         //로직에 의거한 codeId 생성

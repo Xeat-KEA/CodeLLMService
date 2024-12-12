@@ -11,5 +11,5 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "code-bank-service")
 public interface CodeBankClient {
     @PostMapping("/code/llm/gpt/create")
-    ResponseEntity<ClientResponseDTO.CodeBankResponseDTO> createCodeId(@RequestBody LLMResponseDTO.CodeGenerateResponse request, @RequestHeader("UserId") String userId);
+    ResponseEntity<ClientResponseDTO> createCodeId(@RequestBody LLMResponseDTO.CodeGenerateResponse request, @RequestHeader("UserId") String userId);
 }
