@@ -199,8 +199,10 @@ public class LLMResponseDTO {
         Boolean firstPage;
         @Schema(name = "lastPage", description = "마지막 페이지 여부", example = "false")
         Boolean lastPage;
+        @Schema(name = "currentPage", description = "현재 페이지", example = "1")
+        Integer currentPage;
 
-        public static ChatResponseList toChatResponseList(Page<LLMHistoryEntity> chatPage, List<ChatResponse> chatResponseList){
+        public static ChatResponseList toChatResponseList(Page<LLMHistoryEntity> chatPage, List<ChatResponse> chatResponseList, Integer currentPage){
             return ChatResponseList.builder()
                     .chatResponseList(chatResponseList)
                     .totalPage(chatPage.getTotalPages())
@@ -208,6 +210,7 @@ public class LLMResponseDTO {
                     .listSize(chatResponseList.size())
                     .firstPage(chatPage.isFirst())
                     .lastPage(chatPage.isLast())
+                    .currentPage(currentPage)
                     .build();
         }
     }

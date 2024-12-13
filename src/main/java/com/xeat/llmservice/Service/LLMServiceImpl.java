@@ -243,26 +243,26 @@ public class LLMServiceImpl implements LLMService {
                     .toList();
 
             if (totalElements % pageSize != 0 && totalElements > pageSize) {
-                Pageable addPageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / pageSize - 1));
-                Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
-                List<LLMResponseDTO.ChatResponse> addChatList = llmHistoryEntities.getContent().stream()
+                Pageable addPageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page - 1);
+                Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, addPageable);
+                List<LLMResponseDTO.ChatResponse> addChatList = addLlmHistoryEntities.getContent().stream()
                         .map(LLMResponseDTO.ChatResponse::of)
                         .toList();
                 List<LLMResponseDTO.ChatResponse> combinedChatList = new ArrayList<>();
                 combinedChatList.addAll(addChatList);
                 combinedChatList.addAll(chatList);
 
-                return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, combinedChatList));
+                return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, combinedChatList, page - 1));
             }
 
-            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList, page));
         }else{
             Pageable pageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
             Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
             List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                     .map(LLMResponseDTO.ChatResponse::of)
                     .toList();
-            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList, page));
         }
     }
 
