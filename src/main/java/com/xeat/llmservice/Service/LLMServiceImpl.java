@@ -1,12 +1,13 @@
 package com.xeat.llmservice.Service;
 
 import com.xeat.llmservice.Client.CodeBankClient;
-import com.xeat.llmservice.DTO.ClientResponseDTO;
+import com.xeat.llmservice.Client.ClientResponseDTO;
 import com.xeat.llmservice.DTO.LLMRequestDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
 import com.xeat.llmservice.Entity.LLMEntity;
 import com.xeat.llmservice.Entity.LLMHistoryEntity;
 import com.xeat.llmservice.Global.ResponseCustomEntity;
+import com.xeat.llmservice.RedisVectorDB.RedisWarningTextInitializer;
 import com.xeat.llmservice.Repository.LLMHistoryRepository;
 import com.xeat.llmservice.Repository.LLMRepository;
 import jakarta.transaction.Transactional;
@@ -22,8 +23,8 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.vectorstore.RedisVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,11 +44,8 @@ public class LLMServiceImpl implements LLMService {
     private final LLMRepository llmRepository;
     private final LLMHistoryRepository llmHistoryRepository;
     private final OpenAiChatModel openAiChatModel;
-    private final VectorStore vectorStore;
-    private final ChatClient chatClient;
+    private final RedisVectorStore redisVectorStore;
     private final CodeBankClient codeBankClient;
-
-
 
     @Override
     public ResponseCustomEntity<LLMResponseDTO.CodeGenerateClientResponse> codeGenerator(String userId, LLMRequestDTO.codeGeneratingInfo request) {
@@ -170,72 +168,46 @@ public class LLMServiceImpl implements LLMService {
 
     @Override
     public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request) {
+        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.REMOVE_PROMPT.getType())) {
+            return ResponseCustomEntity.error(400, "금지된 질문입니다.", null);
+
+        }
+
+        List<Message> systemMessages;
+        if(!llmRepository.existsByUserId(userId)){
+            systemMessages = List.of(
+                    new SystemMessage("문제 정보 : " + request.getCodingTestContent()),
+                    new SystemMessage("사용자 기본 언어 : " + request.getCodeLanguage())
+            );
+        }else{
+            systemMessages = processQuestion(userId, request.getChatMessage());
+        }
+
+
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
                 .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
                 .build()
-                .prompt()
+                .prompt(new Prompt(systemMessages))
                 .user(request.getChatMessage())
                 .call()
                 .chatResponse();
 
-        if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
-            //codeHistoryId를 feignClient로 받아와야 할 수도 있음
-            LLMEntity llmEntity = llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
-                    .userId(userId)
-                    .codeHistoryId(1L)
-                    .build()));
 
-            LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
-                    .chatHistoryId(1L)
-                    .question(request.getChatMessage())
-                    .answer(chatResponse.getResult().getOutput().getContent())
-                    .llmEntity(llmEntity)
-                    .build()));
+        String answer = chatResponse.getResult().getOutput().getContent();
 
-            return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
-
+        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.BAN_QUESTIONS.getType())) {
+            answer += "<warning>질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다.</warning><br><br>";
         }
-        if(request.getIsRequestCodeGen() && banQuestionChecker(request.getChatMessage())) {
-            return ResponseCustomEntity.error(400, "코딩테스트 생성 요청은 금지되어 있습니다.", null);
-        }
-
-        //feign client에서 코테 문제 정보 받아와서 Redis cache에 저장
-
-
 
         LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
                 .chatHistoryId(request.getCodeHistoryId())
                 .question(request.getChatMessage())
-                .answer(chatResponse.getResult().getOutput().getContent())
+                .answer(answer)
                 .llmEntity(llmRepository.findByCodeHistoryId(request.getCodeHistoryId()))
                 .build()));
 
 
         return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
-
-
-        //1. 사용자의 메세지 받기
-
-
-        //2. 사용자 신원 조회
-//        if (llmRepository.existsById(Long.valueOf(request.getUserId()))) {
-//            //TODO: 레디스 캐시 확인 후
-//            identity = "firstChat";
-//        } else identity = "firstConnection";
-//
-//        //a. 신규 사용자 : 사용자 언어 및 코테 문제 언어 받아 와서 OpenAI에 전달
-//        //feign client로 코테 문제정보 받아와서 Redis cache에 저장
-//
-//        if (identity.equals("firstConnection")) {
-//
-//
-//        }
-        //b. 기존 사용자 : 기존 기록 중 현재 질문과 가장 유사한 질문과 가장 유사하지 않은 질문 반환하여 전달.
-
-
-        //c. 기존 사용자 중 한 문제에 관한 대화기록이 있는 경우 : 해당 문제에 대한 대화기록 가져와서 OpenAI에 전달.
-
-
     }
 
     @Override
@@ -296,28 +268,26 @@ public class LLMServiceImpl implements LLMService {
         return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
-    private boolean banQuestionChecker(String chatMessage) {
-        return !vectorStore.similaritySearch(
+    private boolean banQuestionChecker(String chatMessage, String questionType) {
+        return !redisVectorStore.similaritySearch(
                 SearchRequest.query(chatMessage)
                         .withFilterExpression(
                                 new Filter.Expression(
                                     Filter.ExpressionType.EQ,
                                     new Filter.Key("type"),
-                                    new Filter.Value("banGeneratingQuestion")))
+                                    new Filter.Value(questionType)))
                         .withSimilarityThreshold(0.9f)
         ).isEmpty();
     }
 
-    public List<Message> processQuestion(Integer userId, String question) {
-
-        // Redis에서 가장 유사한 질문 2개 검색
-        List<Document> similarQuestions = vectorStore.similaritySearch(
+    public List<Message> processQuestion(String userId, String question) {
+        List<Document> similarQuestions = redisVectorStore.similaritySearch(
                 SearchRequest.query(question)
                         .withFilterExpression(
                                 new Filter.Expression(
                                         Filter.ExpressionType.EQ,
                                         new Filter.Key("userId"),
-                                        new Filter.Value(userId.toString())
+                                        new Filter.Value(userId)
                                 )
                         )
                         .withTopK(2)
@@ -325,151 +295,13 @@ public class LLMServiceImpl implements LLMService {
 
 
         // 유사한 질문 2개 추출
-        String mostSimilar = !similarQuestions.isEmpty() ? similarQuestions.get(0).getContent() : "없음";
-        String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "없음";
+        String mostSimilar = !similarQuestions.isEmpty() ? similarQuestions.get(0).getContent() : "현재 질문과 가장 유사한 질문이 아직 없음";
+        String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "현재 질문과 두번째로 유사한 질문이 아직 없음";
 
         // ChatGPT 전달 데이터 구성
-        UserMessage userMessage = new UserMessage(question);
         SystemMessage mostSimilarMessage = new SystemMessage("가장 유사한 질문: " + mostSimilar);
         SystemMessage secondMostSimilarMessage = new SystemMessage("두 번째로 유사한 질문: " + secondMostSimilar);
 
-        return List.of(userMessage, mostSimilarMessage, secondMostSimilarMessage);
+        return List.of(mostSimilarMessage, secondMostSimilarMessage);
     }
 }
-
-//    @Override
-//    public ResponseCustomEntity<LLMResponseDTO.ChatResponseList> chatRecentHistory(String userId, Long codeHistoryId) {
-//        if(!llmRepository.existsByCodeHistoryId(codeHistoryId)){
-//            return ResponseCustomEntity.error(400, "해당 코딩테스트 ID에 대한 채팅 기록이 없습니다.", null);
-//        }
-//
-//        if(!llmRepository.existsByUserId(userId)){
-//            return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
-//        }
-//
-//        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(0);
-//        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
-//        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
-//                .map(LLMResponseDTO.ChatResponse::of)
-//                .toList();
-//        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
-//    }
-
-    //import static com.xeat.llmservice.OpenAI.FunctionSpec.codeContentPropertiesDetail.createCodeContentPropertiesDetail;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.codeGeneratorFunctionDetail.createCodeGeneratorFunctionDetail;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.codePropertiesDetail.createCodePropertiesDetail;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.contentSpec.createContentSpec;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.itemsSpec.createItemsSpec;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.parameterSpec.createParameterSpec;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.testCasePropertiesSpec.createTestCasePropertiesSpec;
-//import static com.xeat.llmservice.OpenAI.FunctionSpec.testCaseSpec.createTestCaseSpec;
-
-    //        List<OpenAIMessage> openAIMessageList = new ArrayList<>();
-//        OpenAIMessage systemMessage = OpenAIMessage.createMessage("system", "난이도(1~5), 알고리즘, 기타 사항을 받아 한글로 만든 코딩테스트를 만들어준다. 모든 질문의 답은 html 태그에 담아 말하고, 적재적소에 필요한 태그를 사용한다. 단, <h2>가 가장 큰 글씨이다.  입력 예제, 출력 예제 하나를 제외한 테스트케이스는 말해주지는 않는다.");
-//        OpenAIMessage userMessage = OpenAIMessage.createMessage("user", "난이도 : " + request.getDifficulty() + " " + "알고리즘 : " + request.getAlgorithm() + " " + "추가 사항 : " + etc);
-//
-//        openAIMessageList.add(systemMessage);
-//        openAIMessageList.add(userMessage);
-
-//        OpenAiChatOptions openAiChatOptions = OpenAiChatOptions.builder()
-//                .withFunction("coding-test-generator")
-//                .build();
-//        ChatResponse chatResponse = this.openAiChatModel.call(new Prompt(userMessage1,
-//                OpenAiChatOptions.builder().withFunction("coding-test-generator").build()));
-//        Prompt prompt = new Prompt(String.valueOf(openAIMessageList), openAiChatOptions);
-
-//        System.out.println("ai response : "+chatResponse.toString());
-//        System.out.println(chatResponse.getResult().getOutput().getContent());
-
-//        return ResponseEntity.success(LLMResponseDTO.from(chatResponse.toString()));
-
-
-//    // cache에 저장된 질문을 가져오는 메소드
-//    private static final String RECENT_QUESTION = "recentQuestion :";
-//    private final RedisTemplate<String, Object> redisTemplate;
-//    public void
-
-
-//    private final WebClient webClient;
-//    private final ObjectMapper objectMapper;
-//    private final String apiKey;
-
-//    // Constructor
-//    public LLMServiceImpl(LLMRepository llmRepository,
-//                          LLMHistoryRepository llmHistoryRepository,
-//                          WebClient.Builder webClientBuilder,
-//                          @Value("${chat-GPT.api-key}") String apiKey,
-//                          @Value("${chat-GPT.base-url}") String baseUrl) {
-//        this.llmRepository = llmRepository;
-//        this.llmHistoryRepository = llmHistoryRepository;
-//        this.apiKey = apiKey;
-//        this.objectMapper = new ObjectMapper();
-//        this.webClient = webClientBuilder
-//                .baseUrl(baseUrl)
-//                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-//                .build();
-//    }
-//
-//    private final static String ALGORITHM = "알고리즘 : ";
-//    private final static String DIFFICULTY = "난이도 : ";
-//    private final static String ETC = "추가 사항 : ";
-//
-//    @Override
-//    public Mono<ResponseEntity<LLMResponseDTO>> codeGenerator(LLMRequestDTO.codeGeneratingInfo request) {
-//        String etc = request.getEtc() != null ? request.getEtc() : "null";
-//
-//        OpenAIMessage systemMessage = OpenAIMessage.createMessage("system", "난이도(1~5), 알고리즘, 기타 사항을 받아 한글로 만든 코딩테스트를 만들어준다. 모든 질문의 답은 html 태그에 담아 말하고, 적재적소에 필요한 태그를 사용한다. 단, <h2>가 가장 큰 글씨이다.  입력 예제, 출력 예제 하나를 제외한 테스트케이스는 말해주지는 않는다.");
-////        OpenAIMessage assistantMessage = OpenAIMessage.createMessage("assistant", "");
-//        OpenAIMessage userMessage = OpenAIMessage.createMessage("user", DIFFICULTY + request.getDifficulty()+ " " + ALGORITHM + request.getAlgorithm() + " " + ETC + etc);
-//        OpenAIMessage.toolMessage toolMessage = OpenAIMessage.toolMessage.createExtendedMessage("tool", "\"success : true\"", "call_jRc9982SHvKmEZ0NxhDJaibm");
-//        OpenAIMessage assistantInfoMessage = OpenAIMessage.assistantMessage.createExtendedMessage("assistant",
-//                "call_OGZEbEe2XEJXuy69BUVYkhFA",
-//                "create_coding_test",
-//                "<h2>DP를 활용한 최적 부분 문제 해결: 피보나치 수열</h2><br><p>동적 프로그래밍(DP)은 복잡한 문제를 더 간단한 하위 문제로 나누고, 그 하위 문제들을 풀어서 원래의 문제를 해결하는 알고리즘 기법이다. 이번 코딩 테스트에서는 피보나치 수열을 DP를 활용하여 해결하는 문제를 다룬다.</p><br><p>피보나치 수열은 다음과 같은 점화식을 갖는다:</p><ul><li><code>F(0) = 0</code></li><li><code>F(1) = 1</code></li><li><code>F(n) = F(n-1) + F(n-2)</code> for <code>n >= 2</code></li></ul><br><p>정수 <code>n</code>이 주어졌을 때, <code>F(n)</code>을 DP를 사용하여 계산하라.</p><br><h2>입력</h2><p>정수 <code>n</code> (0 ≤ n ≤ 30)</p><br><h2>출력</h2><p><code>F(n)</code>의 값을 정수로 출력한다.</p>");
-//
-//        FunctionSpec codeGeneratorFunctionSpec = FunctionSpec.createFunctionSpec("function",
-//                FunctionSpec.functionDetail.createFunctionDetail("create_coding_test","난이도(1~5), 알고리즘, 기타 추가사항(can null)을 받아 코딩테스트를 만든다.",
-//                        createCodeGeneratorFunctionDetail("object", List.of("difficulty", "algorithm", "additional_notes","title","content"), false,
-//                                createCodePropertiesDetail(createParameterSpec("string","코딩테스트 제목"),
-//                                        createContentSpec("object", List.of("html", "test_cases"),
-//                                                createCodeContentPropertiesDetail(createParameterSpec("string","코딩테스트 및 글 내용을 담는 HTML 코드이다.다음 네가지 조건을 꼭 지킨다. 1. \\n을 필요한 곳에 꼭 넣으며, <br>을 통해 단을 나눈다. 2. 강조될 글자는 최대 <h2>이다. 3. 일반텍스트는 <p>에 담는다. 4. 필요에 의해 목록은 <ul><li>, 코드는 <pre><code>에 담는다."),
-//                                                        createTestCaseSpec("array",
-//                                                                createItemsSpec("object",List.of("input","expected_output"),false,
-//                                                                        createTestCasePropertiesSpec(createParameterSpec("string","테스트케이스의 입력값이다."),
-//                                                                                createParameterSpec("string","테스트케이스의 출력값이다."))),
-//                                                                "테스트 케이스 배열, 최대 20개를 담는다."))),false),
-//                                createParameterSpec("string","사용할 알고리즘"),
-//                                createParameterSpec("string","난이도 level(1~5)"),
-//                                createParameterSpec("string","추가 사항(can null)")
-//                                ),true));
-//
-//        OpenAIRequest openAIRequest = OpenAIRequest.builder()
-//                .model("gpt-4o")
-//                .messages(List.of(systemMessage, userMessage, assistantInfoMessage, toolMessage))
-//                .temperature(1)
-//                .max_tokens(4095)
-//                .top_p(1)
-//                .frequency_penalty(0)
-//                .presence_penalty(0)
-//                .tools(List.of(codeGeneratorFunctionSpec))
-//                .parallel_tool_calls(true)
-//                .response_format(OpenAIRequest.responseFormatSpec.builder().type("text").build())
-//                .build();
-//
-//        log.info("Request to OpenAI: {}", openAIRequest.toString());
-//        String requestBody="";
-//        try {
-//            requestBody = objectMapper.writeValueAsString(openAIRequest);
-//            log.info("Request to OpenAI: {}", objectMapper.writeValueAsString(openAIRequest));
-//        } catch (Exception e) {
-//            log.error("Failed to convert to JSON", e);
-//        }
-//
-//        return webClient.post()
-//                .uri("/chat/completions")
-//                .bodyValue(requestBody)
-//                .retrieve()
-//                .bodyToMono(LLMResponseDTO.class)
-//                .map(ResponseEntity::success)
-//                .doOnError(e -> log.error("Failed to generate code", e));
-//    }

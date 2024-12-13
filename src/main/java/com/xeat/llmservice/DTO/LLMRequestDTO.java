@@ -23,8 +23,8 @@ public class LLMRequestDTO {
         private Long codeHistoryId;
         @Schema(name = "codeLanguage", description = "코드 언어", example = "PYTHON")
         private String codeLanguage;
-        @Schema(name = "isRequestCodeGen", description = "질문이 코드 생성 관련 질문인지 여부", example = "true(default)")
-        private Boolean isRequestCodeGen;
+        @Schema(name = "codingTestContent", description = "코딩테스트 문제 내용", example = "\"<h3>문제 설명:</h3>\\n<p>당신은 '1'과 '0'으로 이루어진 2D 이진 행렬에서 가장 큰 정사각형으로 '1'로 이루어진 배열을 찾아야 합니다. 이때, 가장 큰 정사각형 배열의 면적을 반환합니다.</p>\\n\\n<h3>문제 제한 사항:</h3>\\n<ul>\\n<li>행렬의 크기는 MxN이며, M과 N은 최대 300입니다.</li>\\n</ul>\\n\\n<h3>입력 예시:</h3>\\n<pre><code>4 5\\n1 0 1 0 0\\n1 0 1 1 1\\n1 1 1 1 1\\n1 0 0 1 0\\n</code></pre>\\n\\n<h3>출력 예시:</h3>\\n<pre><code>4\\n</code></pre>\\n\\n<h3>입출력 예 설명:</h3>\\n<p>입력 행렬에서 가장 큰 정사각형의 크기는 2x2이며, 면적은 4입니다.</p>\\n\\n<h3>문제 정보:</h3>\\n<ul>\\n<li>알고리즘: 동적 프로그래밍(DP)</li>\\n<li>난이도: LEVEL3</li>\\n<li>추가 사항: null</li>\\n</ul>\\n\\n<h3>입출력 예 :</h3>\\n<table><tr><th>입력</th><th>출력</th></tr><tr><td>4 5\\n1 0 1 0 0\\n1 0 1 1 1\\n1 1 1 1 1\\n1 0 0 1 0\\n</td><td>4</td></tr><tr><td>3 3\\n0 0 0\\n0 0 0\\n0 0 0\\n</td><td>0</td></tr><tr><td>5 5\\n1 1 0 0 1\\n1 1 0 1 1\\n0 1 1 1 1\\n0 1 1 1 0\\n1 1 1 0 0\\n</td><td>4</td></tr></table>\"")
+        private String codingTestContent;
     }
 
     @Builder

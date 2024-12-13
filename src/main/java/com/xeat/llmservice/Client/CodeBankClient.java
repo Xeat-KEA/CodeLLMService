@@ -1,6 +1,5 @@
 package com.xeat.llmservice.Client;
 
-import com.xeat.llmservice.DTO.ClientResponseDTO;
 import com.xeat.llmservice.DTO.LLMResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

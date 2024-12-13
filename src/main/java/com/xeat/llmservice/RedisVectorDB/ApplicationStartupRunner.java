@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ApplicationStartupRunner implements CommandLineRunner {
-    private final RedisBanCacheInitializer redisBanCacheInitializer;
+    private final RedisWarningTextInitializer redisWarningTextInitializer;
 
     @Override
     public void run(String... args) {
-        redisBanCacheInitializer.init();
+        redisWarningTextInitializer.init();
     }
 }
