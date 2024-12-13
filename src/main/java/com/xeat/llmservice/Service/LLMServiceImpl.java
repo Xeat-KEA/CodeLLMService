@@ -234,7 +234,7 @@ public class LLMServiceImpl implements LLMService {
         int pageSize = 3;
         if(page < 0) {
             Long totalElements = llmHistoryRepository.countByLlmEntity_CodeHistoryId(codeHistoryId);
-            page = totalElements < 6 ? 0 : totalElements.intValue()/6;
+            page = totalElements < pageSize ? 0 : totalElements.intValue()/pageSize;
 
             Pageable pageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
             Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
@@ -242,8 +242,8 @@ public class LLMServiceImpl implements LLMService {
                     .map(LLMResponseDTO.ChatResponse::of)
                     .toList();
 
-            if (totalElements % 6 != 0 && totalElements > 6) {
-                Pageable addPageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 1));
+            if (totalElements % pageSize != 0 && totalElements > pageSize) {
+                Pageable addPageable = PageRequest.ofSize(pageSize).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / pageSize - 1));
                 Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
                 List<LLMResponseDTO.ChatResponse> addChatList = llmHistoryEntities.getContent().stream()
                         .map(LLMResponseDTO.ChatResponse::of)
