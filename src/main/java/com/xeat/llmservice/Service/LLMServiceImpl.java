@@ -190,6 +190,13 @@ public class LLMServiceImpl implements LLMService {
                 .call()
                 .chatResponse();
 
+        if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
+            llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
+                    .userId(userId)
+                    .codeHistoryId(request.getCodeHistoryId())
+                    .build()));
+        }
+
         LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
                 .chatHistoryId(request.getCodeHistoryId())
                 .question(request.getChatMessage())
