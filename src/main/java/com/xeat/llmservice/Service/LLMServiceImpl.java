@@ -231,17 +231,17 @@ public class LLMServiceImpl implements LLMService {
             return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
-        if(page < 0){
+        if(page < 0) {
             Long totalElements = llmHistoryRepository.countByLlmEntity_CodeHistoryId(codeHistoryId);
 
-            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements/6 -1));
+            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 1));
             Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
             List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                     .map(LLMResponseDTO.ChatResponse::of)
                     .toList();
 
-            if(totalElements % 6 != 0 && totalElements > 6){
-                Pageable addPageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements/6 -2));
+            if (totalElements % 6 != 0 && totalElements > 6) {
+                Pageable addPageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 2));
                 Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
                 List<LLMResponseDTO.ChatResponse> addChatList = llmHistoryEntities.getContent().stream()
                         .map(LLMResponseDTO.ChatResponse::of)
@@ -254,14 +254,14 @@ public class LLMServiceImpl implements LLMService {
             }
 
             return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+        }else{
+            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
+            Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+            List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
+                    .map(LLMResponseDTO.ChatResponse::of)
+                    .toList();
+            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
         }
-
-        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
-        Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
-        List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
-                .map(LLMResponseDTO.ChatResponse::of)
-                .toList();
-        return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
     }
 
     private boolean banQuestionChecker(String chatMessage, String questionType) {
