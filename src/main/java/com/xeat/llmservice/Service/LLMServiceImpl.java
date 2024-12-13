@@ -178,7 +178,7 @@ public class LLMServiceImpl implements LLMService {
                     new SystemMessage("사용자 기본 언어 : " + request.getCodeLanguage())
             );
         }else{
-            systemMessages = processQuestion(userId, request.getChatMessage());
+            systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
         }
 
 
@@ -222,7 +222,7 @@ public class LLMServiceImpl implements LLMService {
                     new SystemMessage("사용자 기본 언어 : " + request.getCodeLanguage())
             );
         }else{
-            systemMessages = processQuestion(userId, request.getChatMessage());
+            systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
         }
 
 
@@ -282,7 +282,7 @@ public class LLMServiceImpl implements LLMService {
         ).isEmpty();
     }
 
-    public List<Message> processQuestion(String userId, String question) {
+    public List<Message> processQuestion(String userId, String codeData, String question) {
         List<Document> similarQuestions = redisVectorStore.similaritySearch(
                 SearchRequest.query(question)
                         .withFilterExpression(
@@ -301,9 +301,11 @@ public class LLMServiceImpl implements LLMService {
         String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "현재 질문과 두번째로 유사한 질문이 아직 없음";
 
         // ChatGPT 전달 데이터 구성
-        SystemMessage mostSimilarMessage = new SystemMessage("가장 유사한 질문: " + mostSimilar);
-        SystemMessage secondMostSimilarMessage = new SystemMessage("두 번째로 유사한 질문: " + secondMostSimilar);
+        SystemMessage mostSimilarMessage = new SystemMessage("사용자의 전체 대화 기록 중 가장 유사한 질문: " + mostSimilar);
+        SystemMessage secondMostSimilarMessage = new SystemMessage("사용자의 전체 대화 기록 중 두 번째로 유사한 질문: " + secondMostSimilar);
+        SystemMessage codeDataMessage = new SystemMessage("문제 정보 : " + codeData);
 
-        return List.of(mostSimilarMessage, secondMostSimilarMessage);
+
+        return List.of(mostSimilarMessage, secondMostSimilarMessage, codeDataMessage);
     }
 }
