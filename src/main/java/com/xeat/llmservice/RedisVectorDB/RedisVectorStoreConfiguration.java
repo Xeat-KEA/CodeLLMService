@@ -14,8 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.search.Schema;
 
-import java.util.List;
-
 @Configuration
 @AllArgsConstructor
 @NoArgsConstructor

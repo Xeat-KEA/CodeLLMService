@@ -63,7 +63,6 @@ public class LLMServiceImpl implements LLMService {
                       "type": "string",
                       "description": "문제 설명을 HTML 형식으로 작성합니다. 문제 설명에는 다음 요소들이 포함되어야 합니다: \\n\\n- **문제 설명:** 문제의 배경과 목표를 설명 \\n- **문제 제한 사항:** 문제 풀이 조건을 기술(필요시 null 가능) \\n- **입력 예시:** 문제 풀이를 위한 예제 입력값,  \\n- **출력 예시:** 예제 입력에 대한 출력값 \\n- **입출력 예 설명:** 예제 입력과 출력의 관계를 설명 \\n\\nHTML 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.\\n\\n입출력 예시의 형식은 다음을 준수해야 합니다: \\n1. 입력값, 출력값은 각 항목을 줄바꿈(`\\n`)을 이용해 나타냅니다. 예를 들어, 그래프의 노드와 간선을 입력받는 경우 다음과 같은 형식을 사용합니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n2. 출력값은 필요한 경우 문장 대신 값만 포함합니다. \\n 3. 입출력(테스트케이스)은 항상 세가지를 담아야합니다."
                     },
-                    
                     "content_test_cases": {
                       "type": "array",
                       "description": "문제 설명에 들어간 입력 예시와 출력 예시에 대한 테스트케이스 세개 전부를 담습니다.  \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
@@ -86,7 +85,6 @@ public class LLMServiceImpl implements LLMService {
                         "additionalProperties": false
                       }
                     },
-                    
                     "problem_info" : {
                       "type": "array",
                       "description" : "문제 제작에 필요한 정보를 배열로 작성합니다. 각 항목은 문제 알고리즘, 난이도, 추가 사항을 포함합니다.",
@@ -114,7 +112,6 @@ public class LLMServiceImpl implements LLMService {
                         "additionalProperties": false
                       }
                     },
-                    
                     "test_cases": {
                       "type": "array",
                       "description": "테스트 케이스 배열로 문제 풀이 검증을 위한 입력과 출력 정보를 담습니다. 본문에 포함된 테스트케이스를 제외한 입력값과 출력값 쌍의 개수는 문제의 모든 경우의 수를 검증하는 최소의 수 입니다.  \\n\\n테스트 케이스 입력값과 출력값은 각 줄마다 하나의 정보를 포함하며, 줄바꿈(`\\n`)을 이용하여 여러 줄로 나타냅니다. 예를 들어, 그래프 문제의 입력값은 다음 형식을 따릅니다: \\n```\\n6\\n0 1 5\\n0 2 10\\n1 3 8\\n2 3 2\\n3 4 5\\n4 5 2\\n``` \\n출력값은 다음과 같이 나타낼 수 있습니다: \\n```\\n15\\n0 1 3 4 5\\n```",
@@ -161,6 +158,7 @@ public class LLMServiceImpl implements LLMService {
         ResponseEntity<ClientResponseDTO> response = codeBankClient.createCodeId(sendToCodeFeignClient, userId);
 
         ClientResponseDTO data = response.getBody();
+        assert data != null;
         return ResponseCustomEntity.success(LLMResponseDTO.CodeGenerateClientResponse.builder()
                 .codeId(data.getCodeId())
                 .build());

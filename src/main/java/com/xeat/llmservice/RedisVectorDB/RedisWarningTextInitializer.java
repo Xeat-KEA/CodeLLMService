@@ -8,7 +8,6 @@ import org.springframework.ai.vectorstore.RedisVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.stereotype.Service;
 
-import java.awt.image.BandCombineOp;
 import java.util.List;
 import java.util.Map;
 
