@@ -165,10 +165,9 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chatIncludeAnswer(String userId, LLMRequestDTO.chatMessage request) {
+    public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chat(String userId, LLMRequestDTO.chatMessage request) {
         if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.REMOVE_PROMPT.getType())) {
             return ResponseCustomEntity.error(400, "금지된 질문입니다.", null);
-
         }
 
         List<Message> systemMessages;
@@ -181,75 +180,37 @@ public class LLMServiceImpl implements LLMService {
             systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
         }
 
+        String defalutSystemPrompt = getString(request);
 
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
-                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
+                .defaultSystem(defalutSystemPrompt)
                 .build()
                 .prompt(new Prompt(systemMessages))
                 .user(request.getChatMessage())
                 .call()
                 .chatResponse();
 
-
-        String answer = chatResponse.getResult().getOutput().getContent();
-
-        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.BAN_QUESTIONS.getType())) {
-            answer += "<warning>질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다.</warning><br><br>";
-        }
-
         LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
                 .chatHistoryId(request.getCodeHistoryId())
                 .question(request.getChatMessage())
-                .answer(answer)
+                .answer(chatResponse.getResult().getOutput().getContent())
                 .llmEntity(llmRepository.findByCodeHistoryId(request.getCodeHistoryId()))
                 .build()));
 
-
-        return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.BAN_QUESTIONS.getType())) {
+            return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer(), "질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다"));
+        }
+        return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer(), null));
     }
 
-    @Override
-    public ResponseCustomEntity<LLMResponseDTO.CodeQuestionClientResponse> chatJustGuidance(String userId, LLMRequestDTO.chatMessage request) {
-        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.REMOVE_PROMPT.getType())) {
-            return ResponseCustomEntity.error(400, "금지된 질문입니다.", null);
-
-        }
-
-        List<Message> systemMessages;
-        if(!llmRepository.existsByUserId(userId)){
-            systemMessages = List.of(
-                    new SystemMessage("문제 정보 : " + request.getCodingTestContent()),
-                    new SystemMessage("사용자 기본 언어 : " + request.getCodeLanguage())
-            );
+    private static String getString(LLMRequestDTO.chatMessage request) {
+        String defalutSystemPrompt;
+        if(request.isIncludingAnswer()){
+            defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
         }else{
-            systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
+            defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
         }
-
-
-        ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
-                .defaultSystem("코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.")
-                .build()
-                .prompt(new Prompt(systemMessages))
-                .user(request.getChatMessage())
-                .call()
-                .chatResponse();
-
-
-        String answer = chatResponse.getResult().getOutput().getContent();
-
-        if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.BAN_QUESTIONS.getType())) {
-            answer += "<br><br><warning>질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다.</warning>";
-        }
-
-        LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
-                .chatHistoryId(request.getCodeHistoryId())
-                .question(request.getChatMessage())
-                .answer(answer)
-                .llmEntity(llmRepository.findByCodeHistoryId(request.getCodeHistoryId()))
-                .build()));
-
-
-        return ResponseCustomEntity.success(LLMResponseDTO.CodeQuestionClientResponse.of(history.getAnswer()));
+        return defalutSystemPrompt;
     }
 
     @Override
@@ -294,7 +255,6 @@ public class LLMServiceImpl implements LLMService {
                         )
                         .withTopK(2)
         );
-
 
         // 유사한 질문 2개 추출
         String mostSimilar = !similarQuestions.isEmpty() ? similarQuestions.get(0).getContent() : "현재 질문과 가장 유사한 질문이 아직 없음";

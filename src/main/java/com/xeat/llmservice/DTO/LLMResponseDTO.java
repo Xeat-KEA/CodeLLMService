@@ -138,15 +138,20 @@ public class LLMResponseDTO {
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     @Schema(name = "CodeQuestionClientResponse", description = "코딩테스트 gpt 질문 클라이언트 응답", title = "CodeQuestionClientResponse [코딩테스트 gpt 질문 클라이언트 응답]")
     public static class CodeQuestionClientResponse {
         @Schema(name = "answer", description = "질문에 대한 답변", example = "<h3>Python에서 배열을 만드는 함수들</h3>\\n\\n<p>Python에서 배열을 만들기 위해서는 여러 방법이 있습니다. 가장 일반적인 방법 몇 가지를 소개하겠습니다.</p>\\n\\n<h3>기본 리스트(List)</h3>\\n<p>Python에서는 기본적으로 리스트를 사용하여 배열과 유사한 기능을 구현할 수 있습니다.</p>\\n<pre><code># 빈 리스트 생성\\nmy_list = []\\n\\n# 초기값이 있는 리스트 생성\\nmy_list = [1, 2, 3, 4, 5]\\n</code></pre>\\n\\n<h3>Array 모듈 사용</h3>\\n<p>Python의 내장 모듈인 `array`를 사용하여 배열을 만들 수 있습니다. 이 방법은 값의 데이터 타입을 고정해야 할 때 유용합니다.</p>\\n<pre><code>import array\\n\\n# 정수를 담을 배열 생성\\nmy_array = array.array('i', [1, 2, 3, 4, 5])\\n</code></pre>\\n<p>여기서 `'i'`는 배열이 정수를 담고 있다는 데이터 타입코드입니다.</p>\\n\\n<h3>NumPy 라이브러리 사용</h3>\\n<p>NumPy는 수학 연산을 포함한 다양한 기능을 제공하는 강력한 라이브러리로, 배열을 다루는데 최적화되어 있습니다. NumPy 배열은 다차원 배열을 쉽게 처리할 수 있습니다.</p>\\n<pre><code>import numpy as np\\n\\n# NumPy 배열 생성\\nnp_array = np.array([1, 2, 3, 4, 5])\\n</code></pre>\\n\\n<p>각 방법은 목적과 용도에 따라 선택할 수 있습니다. 단순한 배열이 필요하다면 일반 리스트를, 데이터 타입이 중요한 경우는 array 모듈을, 그리고 더 복잡한 수학적 연산이 필요한 경우 NumPy를 사용하는 것이 적절합니다.</p>")
         private String answer;
+        @Schema(name = "warning", description = "경고(can be null)", example = "")
+        private String warning;
 
-        public static CodeQuestionClientResponse of(String answer){
-            return new CodeQuestionClientResponse(answer);
+        public static CodeQuestionClientResponse of(String answer, String warning){
+            return CodeQuestionClientResponse.builder()
+                    .answer(answer)
+                    .warning(warning)
+                    .build();
         }
-
     }
 
 

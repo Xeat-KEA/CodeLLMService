@@ -17,6 +17,8 @@ public class LLMRequestDTO {
     @Getter
     @Schema(name = "chatMessage", title = "chatMessage [질의 응답 요청 정보]", description = "질의 응답 요청 정보")
     public static class chatMessage {
+        @Schema(name = "isIncludingAnswer", description = "답변에 정답 포함 여부", example = "true")
+        private boolean isIncludingAnswer;
         @Schema(name = "chatMessage", description = "채팅 메시지", example = "파이썬에서 출력을 담당하는 함수가 뭐지?")
         private String chatMessage;
         @Schema(name = "codeHistoryId", description = "코드 히스토리 ID", example = "1")
