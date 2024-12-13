@@ -238,7 +238,7 @@ public class LLMServiceImpl implements LLMService {
         String answer = chatResponse.getResult().getOutput().getContent();
 
         if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.BAN_QUESTIONS.getType())) {
-            answer += "<warning>질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다.</warning><br><br>";
+            answer += "<br><br><warning>질의응답으로 생성된 코딩테스트 문제는 실행해볼 수 없습니다.</warning>";
         }
 
         LLMHistoryEntity history = llmHistoryRepository.save(LLMRequestDTO.LLMHistoryDTO.toEntity(LLMRequestDTO.LLMHistoryDTO.builder()
@@ -271,19 +271,19 @@ public class LLMServiceImpl implements LLMService {
     }
 
     private boolean banQuestionChecker(String chatMessage, String questionType) {
-        return !redisVectorStore.similaritySearch(
+        return !redisVectorStore.doSimilaritySearch(
                 SearchRequest.query(chatMessage)
                         .withFilterExpression(
                                 new Filter.Expression(
                                     Filter.ExpressionType.EQ,
                                     new Filter.Key("type"),
                                     new Filter.Value(questionType)))
-                        .withSimilarityThreshold(0.9f)
+                        .withSimilarityThreshold(0.95f)
         ).isEmpty();
     }
 
     public List<Message> processQuestion(String userId, String codeData, String question) {
-        List<Document> similarQuestions = redisVectorStore.similaritySearch(
+        List<Document> similarQuestions = redisVectorStore.doSimilaritySearch(
                 SearchRequest.query(question)
                         .withFilterExpression(
                                 new Filter.Expression(
