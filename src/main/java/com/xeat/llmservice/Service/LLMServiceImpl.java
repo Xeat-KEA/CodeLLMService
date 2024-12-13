@@ -233,15 +233,16 @@ public class LLMServiceImpl implements LLMService {
 
         if(page < 0) {
             Long totalElements = llmHistoryRepository.countByLlmEntity_CodeHistoryId(codeHistoryId);
+            page = totalElements < 6 ? 0 : totalElements.intValue()/6;
 
-            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 1));
+            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
             Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
             List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                     .map(LLMResponseDTO.ChatResponse::of)
                     .toList();
 
             if (totalElements % 6 != 0 && totalElements > 6) {
-                Pageable addPageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 2));
+                Pageable addPageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements / 6 - 1));
                 Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
                 List<LLMResponseDTO.ChatResponse> addChatList = llmHistoryEntities.getContent().stream()
                         .map(LLMResponseDTO.ChatResponse::of)
