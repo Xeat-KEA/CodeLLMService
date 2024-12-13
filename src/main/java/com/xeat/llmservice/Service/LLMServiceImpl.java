@@ -33,6 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -230,7 +231,32 @@ public class LLMServiceImpl implements LLMService {
             return ResponseCustomEntity.error(400, "해당 유저 ID에 대한 채팅 기록이 없습니다.", null);
         }
 
-        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.DESC, "chatHistoryId").withPage(page);
+        if(page < 0){
+            Long totalElements = llmHistoryRepository.countByLlmEntity_CodeHistoryId(codeHistoryId);
+
+            Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements/6 -1));
+            Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+            List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
+                    .map(LLMResponseDTO.ChatResponse::of)
+                    .toList();
+
+            if(totalElements % 6 != 0){
+                Pageable addPageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage((int) (totalElements/6 -2));
+                Page<LLMHistoryEntity> addLlmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
+                List<LLMResponseDTO.ChatResponse> addChatList = llmHistoryEntities.getContent().stream()
+                        .map(LLMResponseDTO.ChatResponse::of)
+                        .toList();
+                List<LLMResponseDTO.ChatResponse> combinedChatList = new ArrayList<>();
+                combinedChatList.addAll(addChatList);
+                combinedChatList.addAll(chatList);
+
+                return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, combinedChatList));
+            }
+
+            return ResponseCustomEntity.success(LLMResponseDTO.ChatResponseList.toChatResponseList(llmHistoryEntities, chatList));
+        }
+
+        Pageable pageable = PageRequest.ofSize(6).withSort(Sort.Direction.ASC, "chatHistoryId").withPage(page);
         Page<LLMHistoryEntity> llmHistoryEntities = llmHistoryRepository.findAllByLlmEntity_CodeHistoryId(codeHistoryId, pageable);
         List<LLMResponseDTO.ChatResponse> chatList = llmHistoryEntities.getContent().stream()
                 .map(LLMResponseDTO.ChatResponse::of)

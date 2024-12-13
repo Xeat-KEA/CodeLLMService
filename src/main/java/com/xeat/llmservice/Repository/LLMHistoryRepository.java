@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LLMHistoryRepository extends JpaRepository<LLMHistoryEntity, Long> {
     Page<LLMHistoryEntity> findAllByLlmEntity_CodeHistoryId(Long codeHistoryId, Pageable pageable);
+
+    Long countByLlmEntity_CodeHistoryId(Long codeHistoryId);
 }
