@@ -174,8 +174,8 @@ public class LLMServiceImpl implements LLMService {
         List<Message> systemMessages;
         if(!llmRepository.existsByUserId(userId)){
             systemMessages = List.of(
-                    new SystemMessage("문제 정보 : " + request.getCodingTestContent()),
-                    new SystemMessage("사용자 기본 언어 : " + request.getCodeLanguage())
+                    new UserMessage("문제 정보 : " + request.getCodingTestContent()),
+                    new UserMessage("사용자 기본 언어 : " + request.getCodeLanguage())
             );
         }else{
             systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
@@ -189,7 +189,7 @@ public class LLMServiceImpl implements LLMService {
                 .prompt(new Prompt(systemMessages))
                 .user(request.getChatMessage())
                 .call()
-                .chatResponse();
+                .chatResponse(); 
 
         if(!llmRepository.existsByCodeHistoryId(request.getCodeHistoryId())){
             llmRepository.save(LLMRequestDTO.LLMDTO.toEntity(LLMRequestDTO.LLMDTO.builder()
@@ -296,9 +296,9 @@ public class LLMServiceImpl implements LLMService {
         String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "현재 질문과 두번째로 유사한 질문이 아직 없음";
 
         // ChatGPT 전달 데이터 구성
-        SystemMessage mostSimilarMessage = new SystemMessage("사용자의 전체 대화 기록 중 가장 유사한 질문: " + mostSimilar);
-        SystemMessage secondMostSimilarMessage = new SystemMessage("사용자의 전체 대화 기록 중 두 번째로 유사한 질문: " + secondMostSimilar);
-        SystemMessage codeDataMessage = new SystemMessage("문제 정보 : " + codeData);
+        UserMessage mostSimilarMessage = new UserMessage("사용자의 전체 대화 기록 중 가장 유사한 질문: " + mostSimilar);
+        UserMessage secondMostSimilarMessage = new UserMessage("사용자의 전체 대화 기록 중 두 번째로 유사한 질문: " + secondMostSimilar);
+        UserMessage codeDataMessage = new UserMessage("문제 정보 : " + codeData);
 
 
         return List.of(mostSimilarMessage, secondMostSimilarMessage, codeDataMessage);
