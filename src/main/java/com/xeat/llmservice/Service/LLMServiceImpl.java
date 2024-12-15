@@ -180,7 +180,9 @@ public class LLMServiceImpl implements LLMService {
                 .defaultSystem(defalutSystemPrompt)
                 .build()
                 .prompt()
-                .user(request.getChatMessage())
+                .user("사용자의 주력 언어는" + request.getCodeLanguage() + "입니다. 해당 언어에 맞게 답하면 되며, 다른 언어를 원한다면 그에대한 적절한 답변을 말하면 됩니다."
+                        + "현재 문제는 다음과 같습니다. " + request.getCodingTestContent()
+                        + "사용자의 질문 : " + request.getChatMessage())
                 .call()
                 .chatResponse(); 
 
@@ -205,9 +207,7 @@ public class LLMServiceImpl implements LLMService {
     }
 
     private static String getString(LLMRequestDTO.chatMessage request) {
-        String defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다."
-                + "사용자의 주력 언어는" + request.getCodeLanguage() + "입니다. 해당 언어에 맞게 답하면 되며, 다른 언어를 원한다면 그에대한 적절한 답변을 말하면 됩니다."
-                + "현재 문제는 다음과 같습니다. " + request.getCodingTestContent()
+        String defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. "
                 + "항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 꼭 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
         if(request.isIncludingAnswer()){
             defalutSystemPrompt += "답변은 코딩테스트에 대한 답을 포함할 수 있습니다.";
