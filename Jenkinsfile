@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        stage('Docker Image Deploy') {
+        stage('Docker Image Deploy to s119') {
             steps {
                 // jenkins config에서 설정한 SSH password를 사용하여 원격 호스트에 접속
                 sshPublisher(publishers: [sshPublisherDesc(configName: 's119', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
@@ -63,7 +63,7 @@ pipeline {
             }
         }
 
-        stage('Docker Image Deploy') {
+        stage('Docker Image Deployto s118') {
             steps {
                 // jenkins config에서 설정한 SSH password를 사용하여 원격 호스트에 접속
                 sshPublisher(publishers: [sshPublisherDesc(configName: 's118', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
