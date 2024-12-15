@@ -62,6 +62,21 @@ pipeline {
                     ''', execTimeout: 120000,flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
             }
         }
+
+        stage('Docker Image Deploy') {
+            steps {
+                // jenkins config에서 설정한 SSH password를 사용하여 원격 호스트에 접속
+                sshPublisher(publishers: [sshPublisherDesc(configName: 's118', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''
+                    docker rm -f codellmservice
+                    docker system prune -a -f  
+                    docker run --name codellmservice -d --network host --restart on-failure\
+                                --env ACTIVE_PROFILE=prod\
+                                --env CONFIG_SERVER_URL=172.16.211.110:9000\
+                                hurraypersimmon/codingtext:codellmservice\\
+                                java -Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0 -jar /app.jar
+                    ''', execTimeout: 120000,flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+            }
+        }
     }
 
     post {
