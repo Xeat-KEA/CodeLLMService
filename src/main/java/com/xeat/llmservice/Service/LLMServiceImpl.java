@@ -170,23 +170,16 @@ public class LLMServiceImpl implements LLMService {
         if(banQuestionChecker(request.getChatMessage() , RedisWarningTextInitializer.REMOVE_PROMPT.getType())) {
             return ResponseCustomEntity.error(400, "금지된 질문입니다.", null);
         }
-
-        List<Message> systemMessages;
-        if(!llmRepository.existsByUserId(userId)){
-            systemMessages = List.of(
-                    new UserMessage("문제 정보 : " + request.getCodingTestContent()),
-                    new UserMessage("사용자 기본 언어 : " + request.getCodeLanguage())
-            );
-        }else{
-            systemMessages = processQuestion(userId, request.getCodingTestContent(), request.getChatMessage());
-        }
-
         String defalutSystemPrompt = getString(request);
+
+        if(llmRepository.existsByUserId(userId)){
+            defalutSystemPrompt += processQuestion(userId, request.getChatMessage());
+        }
 
         ChatResponse chatResponse = ChatClient.builder(openAiChatModel)
                 .defaultSystem(defalutSystemPrompt)
                 .build()
-                .prompt(new Prompt(systemMessages))
+                .prompt()
                 .user(request.getChatMessage())
                 .call()
                 .chatResponse(); 
@@ -212,11 +205,14 @@ public class LLMServiceImpl implements LLMService {
     }
 
     private static String getString(LLMRequestDTO.chatMessage request) {
-        String defalutSystemPrompt;
+        String defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다."
+                + "사용자의 주력 언어는" + request.getCodeLanguage() + "입니다. 해당 언어에 맞게 답하면 되며, 다른 언어를 원한다면 그에대한 적절한 답변을 말하면 됩니다."
+                + "현재 문제는 다음과 같습니다. " + request.getCodingTestContent()
+                + "항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 꼭 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
         if(request.isIncludingAnswer()){
-            defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 포함할 수 있습니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
+            defalutSystemPrompt += "답변은 코딩테스트에 대한 답을 포함할 수 있습니다.";
         }else{
-            defalutSystemPrompt = "코딩테스트에 대한 질문을 응답해주는 친절한 챗봇입니다. 답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다. 항상 답변은 HTML 태그에 담아 보내며, 답변 작성 시 다음 규칙을 지켜야 합니다: \\n1. 문단 구분 시 `\\n`과 `<br>`을 적절히 활용합니다. \\n2. 강조가 필요한 제목은 `<h3>`를 사용합니다. \\n3. 일반 텍스트는 `<p>` 태그에 포함합니다. \\n4. 목록은 `<ul><li>`, 코드 예시는 `<pre><code>`로 감싸 작성합니다.";
+            defalutSystemPrompt = "답변은 코딩테스트에 대한 답을 절대 포함할 수 없으며, 오로지 힌트만 제공해야 합니다.";
         }
         return defalutSystemPrompt;
     }
@@ -278,7 +274,7 @@ public class LLMServiceImpl implements LLMService {
         ).isEmpty();
     }
 
-    public List<Message> processQuestion(String userId, String codeData, String question) {
+    public String processQuestion(String userId, String question) {
         List<Document> similarQuestions = redisVectorStore.doSimilaritySearch(
                 SearchRequest.query(question)
                         .withFilterExpression(
@@ -291,16 +287,8 @@ public class LLMServiceImpl implements LLMService {
                         .withTopK(2)
         );
 
-        // 유사한 질문 2개 추출
         String mostSimilar = !similarQuestions.isEmpty() ? similarQuestions.get(0).getContent() : "현재 질문과 가장 유사한 질문이 아직 없음";
         String secondMostSimilar = similarQuestions.size() > 1 ? similarQuestions.get(1).getContent() : "현재 질문과 두번째로 유사한 질문이 아직 없음";
-
-        // ChatGPT 전달 데이터 구성
-        UserMessage mostSimilarMessage = new UserMessage("사용자의 전체 대화 기록 중 가장 유사한 질문: " + mostSimilar);
-        UserMessage secondMostSimilarMessage = new UserMessage("사용자의 전체 대화 기록 중 두 번째로 유사한 질문: " + secondMostSimilar);
-        UserMessage codeDataMessage = new UserMessage("문제 정보 : " + codeData);
-
-
-        return List.of(mostSimilarMessage, secondMostSimilarMessage, codeDataMessage);
+        return "사용자의 전체 대화 기록 중 가장 유사한 질문: " + mostSimilar + "\n" + "사용자의 전체 대화 기록 중 두 번째로 유사한 질문: " + secondMostSimilar + "\n";
     }
 }
