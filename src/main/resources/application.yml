@@ -1,3 +1,7 @@
 spring:
   application:
-    name : LLMService
+    name: code-llm-service
+  profiles:
+    active: ${ACTIVE_PROFILE}
+  config:
+    import: optional:configserver:http://codingtext:1111@${CONFIG_SERVER_URL}
